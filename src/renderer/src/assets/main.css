@@ -1,2 +1,86 @@
 @import 'tailwindcss';
 @import '@heroui/styles';
+@import '@fontsource-variable/open-sans';
+
+/*
+ * Art Todo design tokens. They override the HeroUI default theme.
+ * Keep the titlebar colors in src/shared/theme.ts in sync with --background.
+ */
+@layer base {
+  :root,
+  :host {
+    --accent: #ffca39;
+    --accent-foreground: #1a1a1a;
+    --radius: 0.5rem;
+    --tooltip-delay: 400ms;
+  }
+
+  :root,
+  .light,
+  [data-theme='light'] {
+    --background: #fafaf9;
+    --foreground: #1a1a1a;
+    --surface: #ffffff;
+    --overlay: #ffffff;
+    --muted: #6b6b6b;
+    --default: #f0efec;
+    --default-foreground: #1a1a1a;
+    --border: #e7e5e2;
+    --separator: #eceae7;
+    --sidebar: #f2f1ee;
+    --sidebar-active: #e6e4df;
+
+    /* Accent as text or thin strokes: #FFCA39 fails contrast on light surfaces. */
+    --accent-text: #8a6500;
+    --focus: var(--accent-text);
+    --link: var(--accent-text);
+    --priority-high: #b42318;
+  }
+
+  .dark,
+  [data-theme='dark'] {
+    --background: #161616;
+    --foreground: #ededed;
+    --surface: #1f1f1f;
+    --overlay: #222222;
+    --muted: #9a9a9a;
+    --default: #262626;
+    --default-foreground: #ededed;
+    --border: #2c2c2c;
+    --separator: #262626;
+    --sidebar: #1b1b1b;
+    --sidebar-active: #282828;
+
+    --accent-text: #ffca39;
+    --focus: var(--accent-text);
+    --link: var(--accent-text);
+    --priority-high: #f97066;
+  }
+}
+
+@theme inline {
+  --font-sans: 'Open Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-accent-text: var(--accent-text);
+  --color-priority-high: var(--priority-high);
+}
+
+@utility app-drag {
+  app-region: drag;
+}
+
+@utility app-no-drag {
+  app-region: no-drag;
+}
+
+/* Keeps content clear of the native window controls drawn by titleBarOverlay. */
+@utility titlebar-inset {
+  padding-right: calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw));
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+}
