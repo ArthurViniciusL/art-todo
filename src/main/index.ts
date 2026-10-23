@@ -2,6 +2,7 @@ import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { currentTitlebarOverlay, registerThemeHandlers } from './theme'
 
 function createWindow(): void {
   // Create the browser window.
@@ -13,6 +14,9 @@ function createWindow(): void {
     title: 'Art Todo',
     show: false,
     autoHideMenuBar: true,
+    titleBarStyle: 'hidden',
+    titleBarOverlay: currentTitlebarOverlay(),
+    backgroundColor: currentTitlebarOverlay().color,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -52,6 +56,7 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
+  registerThemeHandlers()
   createWindow()
 
   app.on('activate', function () {
