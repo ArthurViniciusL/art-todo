@@ -1,7 +1,7 @@
 import { ToggleButton, ToggleButtonGroup, Tooltip } from '@heroui/react'
 import { Monitor, Moon, Sun, type LucideIcon } from 'lucide-react'
 import { isThemePreference, type ThemePreference } from '../../../shared/theme'
-import { useUiStore } from '../stores/ui'
+import { useSetThemePreference, useThemePreference } from '../hooks/queries'
 
 const OPTIONS: { id: ThemePreference; label: string; icon: LucideIcon }[] = [
   { id: 'system', label: 'Sistema', icon: Monitor },
@@ -10,8 +10,8 @@ const OPTIONS: { id: ThemePreference; label: string; icon: LucideIcon }[] = [
 ]
 
 export function ThemeSwitcher(): React.JSX.Element {
-  const theme = useUiStore((state) => state.theme)
-  const setTheme = useUiStore((state) => state.setTheme)
+  const { data: theme = 'system' } = useThemePreference()
+  const { mutate: setTheme } = useSetThemePreference()
 
   return (
     <ToggleButtonGroup

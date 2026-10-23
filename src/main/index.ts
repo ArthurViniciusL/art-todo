@@ -2,13 +2,29 @@ import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { currentTitlebarOverlay, registerThemeHandlers } from './theme'
+import { openDatabase } from './db/client'
+import { createListsRepository } from './db/repositories/lists'
+import { createSettingsRepository, type SettingsRepository } from './db/repositories/settings'
+import { createTasksRepository } from './db/repositories/tasks'
+import { registerIpcHandlers } from './ipc'
+import { applyTheme, currentTitlebarOverlay, storedTheme, watchNativeTheme } from './theme'
+import { loadWindowState, trackWindowState } from './window-state'
 
-function createWindow(): void {
-  // Create the browser window.
+// Lets E2E tests run against a throwaway profile.
+if (process.env['ART_TODO_USER_DATA']) {
+  app.setPath('userData', process.env['ART_TODO_USER_DATA'])
+}
+
+if (!app.requestSingleInstanceLock()) {
+  app.quit()
+}
+
+function createWindow(settings: SettingsRepository): BrowserWindow {
+  const state = loadWindowState(settings)
   const mainWindow = new BrowserWindow({
     width: 1100,
     height: 720,
+    ...state.bounds,
     minWidth: 720,
     minHeight: 480,
     title: 'Art Todo',
@@ -23,8 +39,10 @@ function createWindow(): void {
       sandbox: true
     }
   })
+  trackWindowState(mainWindow, settings)
 
   mainWindow.on('ready-to-show', () => {
+    if (state.isMaximized) mainWindow.maximize()
     mainWindow.show()
   })
 
@@ -40,40 +58,47 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+  return mainWindow
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-  // Set app user model id for windows
   electronApp.setAppUserModelId('com.arthurvinicius.arttodo')
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  registerThemeHandlers()
-  createWindow()
+  const db = openDatabase(
+    join(app.getPath('userData'), 'art-todo.db'),
+    join(app.getAppPath(), 'resources/migrations')
+  )
+  const settings = createSettingsRepository(db)
+  registerIpcHandlers({
+    lists: createListsRepository(db),
+    tasks: createTasksRepository(db),
+    settings
+  })
+
+  // Set before the window exists so the first paint already has the right theme.
+  applyTheme(storedTheme(settings))
+  watchNativeTheme()
+
+  let mainWindow = createWindow(settings)
+
+  app.on('second-instance', () => {
+    if (mainWindow.isMinimized()) mainWindow.restore()
+    mainWindow.focus()
+  })
 
   app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    if (BrowserWindow.getAllWindows().length === 0) mainWindow = createWindow(settings)
   })
 })
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
 })
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.

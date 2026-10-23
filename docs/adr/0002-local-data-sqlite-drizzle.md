@@ -12,7 +12,8 @@ All data stays on the user's machine. The app needs queries by date (Today, Upco
 
 - SQLite through `better-sqlite3`, opened only in the Electron main process.
 - Drizzle ORM for a typed schema and generated SQL migrations (`drizzle-kit`).
-- The database file lives at `app.getPath('userData')/art-todo.db`. Migrations run on startup.
+- The database file lives at `app.getPath('userData')/art-todo.db`. Migrations live in `resources/migrations/` and run on startup.
+- Vitest runs under Electron's Node (`ELECTRON_RUN_AS_NODE=1`), so tests use the same `better-sqlite3` build as the app.
 - The schema includes `tasks.status` (`todo`|`doing`|`done`) and `tasks.due_time` from the start, to avoid early migrations.
 
 ## Options Considered
@@ -56,5 +57,5 @@ The native rebuild cost is paid once and automated by `electron-builder install-
 
 ## Action Items
 
-1. [ ] Schema, migrations and repository layer (phase 2).
+1. [x] Schema, migrations and repository layer (phase 2).
 2. [ ] Create the `db-migration` project skill.
