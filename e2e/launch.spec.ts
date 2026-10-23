@@ -8,7 +8,7 @@ test.afterEach(async () => {
   await app?.close()
 })
 
-test('opens with the app title and the inbox view', async () => {
+test('opens with the app title and the Inbox', async () => {
   app = await launchApp()
   page = await app.firstWindow()
   await expect(page).toHaveTitle('Art Todo')
@@ -19,6 +19,7 @@ test('switches smart views from the sidebar', async () => {
   app = await launchApp()
   page = await app.firstWindow()
   const nav = page.getByRole('navigation', { name: 'Visões' })
+  await expect(nav.getByRole('button', { name: 'Entrada' })).toHaveAttribute('aria-current', 'page')
   await nav.getByRole('button', { name: 'Hoje' }).click()
   await expect(page.getByRole('heading', { level: 1, name: 'Hoje' })).toBeVisible()
   await expect(nav.getByRole('button', { name: 'Hoje' })).toHaveAttribute('aria-current', 'page')
