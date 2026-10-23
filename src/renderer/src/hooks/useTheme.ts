@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from 'react'
-import { useUiStore } from '../stores/ui'
+import { useThemePreference } from './queries'
 
 const darkQuery = window.matchMedia('(prefers-color-scheme: dark)')
 
@@ -8,12 +8,9 @@ function subscribe(onChange: () => void): () => void {
   return () => darkQuery.removeEventListener('change', onChange)
 }
 
-/**
- * Applies the theme class to <html> and sends the preference to the main process,
- * which sets nativeTheme.themeSource so the native window controls match.
- */
+/** Applies the stored theme preference as a class on <html>. */
 export function useTheme(): void {
-  const theme = useUiStore((state) => state.theme)
+  const { data: theme = 'system' } = useThemePreference()
   const systemIsDark = useSyncExternalStore(subscribe, () => darkQuery.matches)
   const isDark = theme === 'dark' || (theme === 'system' && systemIsDark)
 
@@ -22,8 +19,4 @@ export function useTheme(): void {
     root.classList.toggle('dark', isDark)
     root.classList.toggle('light', !isDark)
   }, [isDark])
-
-  useEffect(() => {
-    void window.api.setTheme(theme)
-  }, [theme])
 }

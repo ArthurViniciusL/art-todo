@@ -10,18 +10,18 @@ The renderer must never touch Node or the database. It needs a safe, typed way t
 
 ## Decision
 
-- `contextIsolation: true` and `sandbox: true`. The preload exposes one `window.api` object through `contextBridge`.
-- One shared contract file in `src/shared/` defines every channel name with its argument and return types.
-- The main process registers handlers with `ipcMain.handle`. The preload maps each channel to `ipcRenderer.invoke`.
-- The renderer reads data with TanStack Query hooks over `window.api` and invalidates queries after mutations. Zustand holds UI state only (selection, open modal, view filters).
-- Inputs are validated in the main handler before reaching the DB.
+- `contextIsolation: true` and `sandbox: true`. The preload exposes one `window.api.invoke(channel, ...args)` function through `contextBridge`.
+- `src/shared/ipc.ts` holds the contract: the `IpcContract` interface maps every channel to its argument and return types, and `IPC_CHANNELS` lists them at runtime. A compile-time check fails if the two drift apart.
+- The preload rejects any channel that is not in `IPC_CHANNELS`.
+- `src/main/ipc.ts` implements every channel. The `Handlers` type forces one handler per channel. Handlers receive `unknown` arguments and validate them with `src/shared/validate.ts` before calling a repository.
+- The renderer calls `invoke()` from `src/renderer/src/lib/api.ts` through TanStack Query hooks in `src/renderer/src/hooks/queries.ts`, and invalidates queries after mutations. Zustand holds UI state only (selection, open modal, view filters).
 
 ## Options Considered
 
 ### Option A: Hand-written typed contract (chosen)
 
 **Pros:** No extra dependency; the contract is small and explicit.
-**Cons:** Each endpoint touches four places (contract, handler, preload, hook). The `ipc-endpoint` project skill keeps that consistent.
+**Cons:** Each endpoint touches three places (contract, handler, hook). The generic `invoke` means the preload never changes. The `ipc-endpoint` project skill keeps the steps consistent.
 
 ### Option B: tRPC over IPC (electron-trpc)
 
@@ -31,10 +31,10 @@ The renderer must never touch Node or the database. It needs a safe, typed way t
 ## Consequences
 
 - Easier: type errors surface at compile time across processes.
-- Harder: adding an endpoint needs four edits.
-- Revisit: if endpoints exceed ~40, consider generating the preload from the contract.
+- Harder: adding an endpoint needs three edits plus a validator.
+- Revisit: if the contract grows past ~40 channels, split it by domain.
 
 ## Action Items
 
-1. [ ] Implement contract, handlers and preload (phase 2).
+1. [x] Implement contract, handlers and preload (phase 2).
 2. [ ] Create the `ipc-endpoint` project skill.

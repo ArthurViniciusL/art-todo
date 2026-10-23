@@ -28,5 +28,10 @@ export default defineConfig(
       ...eslintPluginReactRefresh.configs.vite.rules
     }
   },
+  {
+    // Repository factories and query hooks rely on inferred return types by design.
+    files: ['src/main/db/repositories/*.ts', 'src/renderer/src/hooks/queries.ts'],
+    rules: { '@typescript-eslint/explicit-function-return-type': 'off' }
+  },
   eslintConfigPrettier
 )

@@ -1,38 +1,50 @@
-import {
-  _electron as electron,
-  expect,
-  test,
-  type ElectronApplication,
-  type Page
-} from '@playwright/test'
+import { expect, test, type ElectronApplication, type Page } from '@playwright/test'
+import { launchApp, newProfileDir } from './fixtures'
 
 let app: ElectronApplication
-let window: Page
-
-test.beforeEach(async () => {
-  app = await electron.launch({ args: ['.'] })
-  window = await app.firstWindow()
-})
+let page: Page
 
 test.afterEach(async () => {
-  await app.close()
+  await app?.close()
 })
 
 test('opens with the app title and the inbox view', async () => {
-  await expect(window).toHaveTitle('Art Todo')
-  await expect(window.getByRole('heading', { level: 1, name: 'Entrada' })).toBeVisible()
+  app = await launchApp()
+  page = await app.firstWindow()
+  await expect(page).toHaveTitle('Art Todo')
+  await expect(page.getByRole('heading', { level: 1, name: 'Entrada' })).toBeVisible()
 })
 
 test('switches smart views from the sidebar', async () => {
-  const nav = window.getByRole('navigation', { name: 'Visões' })
+  app = await launchApp()
+  page = await app.firstWindow()
+  const nav = page.getByRole('navigation', { name: 'Visões' })
   await nav.getByRole('button', { name: 'Hoje' }).click()
-  await expect(window.getByRole('heading', { level: 1, name: 'Hoje' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Hoje' })).toBeVisible()
   await expect(nav.getByRole('button', { name: 'Hoje' })).toHaveAttribute('aria-current', 'page')
 })
 
-test('applies the dark theme when chosen', async () => {
-  await window.getByRole('radio', { name: 'Escuro' }).click()
-  await expect(window.locator('html')).toHaveClass(/\bdark\b/)
-  await window.getByRole('radio', { name: 'Claro' }).click()
-  await expect(window.locator('html')).toHaveClass(/\blight\b/)
+test('applies the chosen theme and keeps it after a restart', async () => {
+  const profile = newProfileDir()
+  app = await launchApp(profile)
+  page = await app.firstWindow()
+  await page.getByRole('radio', { name: 'Escuro' }).click()
+  await expect(page.locator('html')).toHaveClass(/\bdark\b/)
+  await app.close()
+
+  app = await launchApp(profile)
+  page = await app.firstWindow()
+  await expect(page.locator('html')).toHaveClass(/\bdark\b/)
+  await page.getByRole('radio', { name: 'Claro' }).click()
+  await expect(page.locator('html')).toHaveClass(/\blight\b/)
+})
+
+test('exposes the seeded Inbox through IPC', async () => {
+  app = await launchApp()
+  page = await app.firstWindow()
+  const lists = await page.evaluate(() => window.api.invoke('lists:getAll'))
+  expect(lists).toEqual([expect.objectContaining({ name: 'Entrada', isInbox: true })])
+  await expect(
+    page.evaluate(() => window.api.invoke('lists:remove', 1, 'delete-tasks'))
+  ).rejects.toThrow(/Inbox cannot be deleted/)
 })
