@@ -14,11 +14,12 @@ const isDialogOpen = (): boolean =>
     (element) => !element.closest('[role=region]')
   )
 
-/** App-wide keys: Ctrl+K palette, Ctrl+Z undo, N new task, Ctrl+1..9 navigation. */
+/** App-wide keys: Ctrl+K palette, Ctrl+E export, Ctrl+Z undo, N new task, Ctrl+1..9 navigation. */
 export function useGlobalShortcuts(): void {
   const targets = useNavTargets()
   const select = useUiStore((state) => state.select)
   const setPaletteOpen = useUiStore((state) => state.setPaletteOpen)
+  const setExportOpen = useUiStore((state) => state.setExportOpen)
   const undoLast = useUndoStore((state) => state.undoLast)
   const startNewTask = useStartNewTask()
 
@@ -31,6 +32,11 @@ export function useGlobalShortcuts(): void {
       if (ctrl && !event.shiftKey && event.key.toLowerCase() === 'k') {
         event.preventDefault()
         setPaletteOpen(!useUiStore.getState().isPaletteOpen)
+        return
+      }
+      if (ctrl && !event.shiftKey && event.key.toLowerCase() === 'e') {
+        event.preventDefault()
+        if (!isDialogOpen()) setExportOpen(true)
         return
       }
       if (isTyping(event.target) || isDialogOpen()) return
@@ -57,5 +63,5 @@ export function useGlobalShortcuts(): void {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [targets, select, setPaletteOpen, undoLast, startNewTask])
+  }, [targets, select, setPaletteOpen, setExportOpen, undoLast, startNewTask])
 }

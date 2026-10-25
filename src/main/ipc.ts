@@ -5,6 +5,7 @@ import * as v from '../shared/validate'
 import type { ListsRepository } from './db/repositories/lists'
 import type { SettingsRepository } from './db/repositories/settings'
 import type { TasksRepository } from './db/repositories/tasks'
+import { copyText, saveMarkdown } from './export'
 import { applyTheme, storedTheme, THEME_KEY } from './theme'
 
 interface Repositories {
@@ -15,7 +16,9 @@ interface Repositories {
 
 /** Handlers get raw renderer arguments; each one validates before touching the database. */
 type Handlers = {
-  [C in IpcChannel]: (...args: unknown[]) => ReturnType<IpcContract[C]>
+  [C in IpcChannel]: (
+    ...args: unknown[]
+  ) => ReturnType<IpcContract[C]> | Promise<ReturnType<IpcContract[C]>>
 }
 
 export function registerIpcHandlers({ lists, tasks, settings }: Repositories): void {
@@ -50,7 +53,11 @@ export function registerIpcHandlers({ lists, tasks, settings }: Repositories): v
     'tasks:move': (id, target) => tasks.move(v.id(id), v.taskMove(target)),
     'tasks:search': (query) => tasks.search(v.text(query, 'query')),
     'tasks:remove': (id) => tasks.remove(v.id(id)),
-    'tasks:restore': (task) => tasks.restore(v.task(task))
+    'tasks:restore': (task) => tasks.restore(v.task(task)),
+
+    'export:saveMarkdown': (title, content) =>
+      saveMarkdown(v.text(title, 'title'), v.text(content, 'content')),
+    'export:copy': (text) => copyText(v.text(text, 'text'))
   }
 
   for (const [channel, handler] of Object.entries(handlers)) {

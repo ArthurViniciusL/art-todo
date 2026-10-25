@@ -12,6 +12,7 @@ import { useViewMode } from '../hooks/useViewMode'
 import { dayHeading } from '../lib/format-date'
 import { useUiStore, type SmartView } from '../stores/ui'
 import { ContentHeader } from './ContentHeader'
+import { ExportButton, ExportDialog } from './ExportDialog'
 import { QuickAdd } from './QuickAdd'
 import { TaskEditorModal } from './TaskEditorModal'
 import { TaskBoard } from './TaskBoard'
@@ -54,6 +55,9 @@ export function SmartTaskView({ view }: { view: SmartView }): React.JSX.Element 
   const copy = VIEW_COPY[view]
   const [mode, setMode] = useViewMode({ view })
 
+  // Próximos starts tomorrow; Hoje takes overdue and today.
+  const inView = (task: Task): boolean => view === 'today' || (task.dueDate ?? '') > today
+  const open = tasks.filter((task) => task.status !== 'done')
   // Done tasks only linger for a moment; smart views show open work.
   const visible = tasks.filter((task) => task.status !== 'done' || recentlyDone.has(task.id))
   const groups = view === 'today' ? groupToday(visible, today) : groupUpcoming(visible, today)
@@ -66,7 +70,12 @@ export function SmartTaskView({ view }: { view: SmartView }): React.JSX.Element 
     <>
       <ContentHeader
         title={copy.title}
-        actions={<ViewModeSwitcher value={mode} onChange={setMode} />}
+        actions={
+          <>
+            <ExportButton />
+            <ViewModeSwitcher value={mode} onChange={setMode} />
+          </>
+        }
       />
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pb-10">
         <div
@@ -80,9 +89,7 @@ export function SmartTaskView({ view }: { view: SmartView }): React.JSX.Element 
 
           {mode === 'columns' && (
             <TaskBoard
-              tasks={
-                view === 'today' ? tasks : tasks.filter((task) => (task.dueDate ?? '') > today)
-              }
+              tasks={tasks.filter(inView)}
               compare={compareByDate}
               rowOptions={rowOptions()}
             />
@@ -118,6 +125,18 @@ export function SmartTaskView({ view }: { view: SmartView }): React.JSX.Element 
         </div>
       </div>
       <TaskEditorModal tasks={tasks} isLoaded={isSuccess} />
+      <ExportDialog
+        source={{
+          title: copy.title,
+          mode,
+          groups: (view === 'today' ? groupToday(open, today) : groupUpcoming(open, today)).map(
+            (group) => ({ heading: groupHeading(group, today), tasks: group.tasks })
+          ),
+          done: tasks
+            .filter((task) => task.status === 'done' && inView(task))
+            .sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0))
+        }}
+      />
     </>
   )
 }

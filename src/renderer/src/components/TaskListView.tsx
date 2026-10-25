@@ -5,6 +5,7 @@ import { useTasksByList } from '../hooks/queries'
 import { useViewMode } from '../hooks/useViewMode'
 import { useUiStore } from '../stores/ui'
 import { ContentHeader } from './ContentHeader'
+import { ExportButton, ExportDialog } from './ExportDialog'
 import { QuickAdd } from './QuickAdd'
 import { TaskBoard } from './TaskBoard'
 import { TaskEditorModal } from './TaskEditorModal'
@@ -28,7 +29,12 @@ export function TaskListView({ list }: { list: List }): React.JSX.Element {
     <>
       <ContentHeader
         title={list.name}
-        actions={<ViewModeSwitcher value={mode} onChange={setMode} />}
+        actions={
+          <>
+            <ExportButton />
+            <ViewModeSwitcher value={mode} onChange={setMode} />
+          </>
+        }
       />
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pb-10">
         <div
@@ -72,6 +78,16 @@ export function TaskListView({ list }: { list: List }): React.JSX.Element {
         </div>
       </div>
       <TaskEditorModal tasks={tasks} isLoaded={isSuccess} />
+      <ExportDialog
+        source={{
+          title: list.name,
+          mode,
+          groups: [{ tasks: tasks.filter((task) => task.status !== 'done') }],
+          done: tasks
+            .filter((task) => task.status === 'done')
+            .sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0))
+        }}
+      />
     </>
   )
 }

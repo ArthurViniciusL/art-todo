@@ -15,6 +15,7 @@ interface UiState {
   /** Done tasks that stay in place for a moment before moving to "Concluídas". */
   recentlyDone: ReadonlySet<number>
   isPaletteOpen: boolean
+  isExportOpen: boolean
   isCreatingList: boolean
   /** Bumped to ask the visible quick add field to take focus. */
   quickAddFocusRequest: number
@@ -23,6 +24,7 @@ interface UiState {
   renameTask: (id: number | null) => void
   setRecentlyDone: (id: number, isRecent: boolean) => void
   setPaletteOpen: (isOpen: boolean) => void
+  setExportOpen: (isOpen: boolean) => void
   setCreatingList: (isCreating: boolean) => void
   focusQuickAdd: () => void
 }
@@ -33,12 +35,14 @@ export const useUiStore = create<UiState>()((set) => ({
   renamingTaskId: null,
   recentlyDone: new Set(),
   isPaletteOpen: false,
+  isExportOpen: false,
   isCreatingList: false,
   quickAddFocusRequest: 0,
   select: (selection) => set({ selection, renamingTaskId: null }),
   openTask: (editingTaskId) => set({ editingTaskId }),
   renameTask: (renamingTaskId) => set({ renamingTaskId }),
   setPaletteOpen: (isPaletteOpen) => set({ isPaletteOpen }),
+  setExportOpen: (isExportOpen) => set({ isExportOpen }),
   setCreatingList: (isCreatingList) => set({ isCreatingList }),
   focusQuickAdd: () => set((state) => ({ quickAddFocusRequest: state.quickAddFocusRequest + 1 })),
   setRecentlyDone: (id, isRecent) =>

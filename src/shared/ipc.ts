@@ -34,6 +34,10 @@ export interface IpcContract {
   'tasks:search': (query: string) => Task[]
   'tasks:remove': (id: number) => Task
   'tasks:restore': (task: Task) => Task
+
+  /** Opens a save dialog for `title`.md; false when cancelled. */
+  'export:saveMarkdown': (title: string, content: string) => boolean
+  'export:copy': (text: string) => void
 }
 
 export type IpcChannel = keyof IpcContract
@@ -56,7 +60,9 @@ export const IPC_CHANNELS = [
   'tasks:move',
   'tasks:search',
   'tasks:remove',
-  'tasks:restore'
+  'tasks:restore',
+  'export:saveMarkdown',
+  'export:copy'
 ] as const satisfies readonly IpcChannel[]
 
 // Compile error if a channel is in the contract but missing from IPC_CHANNELS.
