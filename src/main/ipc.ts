@@ -33,6 +33,7 @@ export function registerIpcHandlers({ lists, tasks, settings }: Repositories): v
     'lists:remove': (id, mode) => lists.remove(v.id(id), v.listDeleteMode(mode)),
 
     'tasks:getByList': (listId) => tasks.getByList(v.id(listId)),
+    'tasks:getDue': (until, since) => tasks.getDue(v.isoDate(until), v.timestamp(since)),
     'tasks:create': (input) => tasks.create(v.newTask(input)),
     'tasks:update': (id, patch) => tasks.update(v.id(id), v.taskPatch(patch)),
     'tasks:remove': (id) => tasks.remove(v.id(id)),
