@@ -14,7 +14,7 @@ import { ViewModeSwitcher } from './ViewModeSwitcher'
 const byPosition = (a: Task, b: Task): number => a.position - b.position
 
 export function TaskListView({ list }: { list: List }): React.JSX.Element {
-  const { data: tasks = [] } = useTasksByList(list.id)
+  const { data: tasks = [], isSuccess } = useTasksByList(list.id)
   const recentlyDone = useUiStore((state) => state.recentlyDone)
   const [mode, setMode] = useViewMode({ list })
 
@@ -39,10 +39,10 @@ export function TaskListView({ list }: { list: List }): React.JSX.Element {
           <QuickAdd defaults={{ listId: list.id }} />
 
           {mode === 'columns' ? (
-            <TaskBoard tasks={tasks} compare={byPosition} />
+            <TaskBoard tasks={tasks} compare={byPosition} isReorderable />
           ) : (
             <>
-              <TaskGrid label="Tarefas" tasks={active} layout={layout} />
+              <TaskGrid label="Tarefas" tasks={active} layout={layout} isReorderable />
 
               {tasks.length === 0 && (
                 <div className="flex flex-col items-center gap-3 py-24 text-center">
@@ -71,7 +71,7 @@ export function TaskListView({ list }: { list: List }): React.JSX.Element {
           )}
         </div>
       </div>
-      <TaskEditorModal tasks={tasks} />
+      <TaskEditorModal tasks={tasks} isLoaded={isSuccess} />
     </>
   )
 }

@@ -1,7 +1,8 @@
 import { Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { NewTask } from '../../../shared/domain'
-import { useCreateTask } from '../hooks/queries'
+import { useTaskActions } from '../hooks/useTaskActions'
+import { useUiStore } from '../stores/ui'
 
 interface QuickAddProps {
   /** Fields every new task gets, at least the target list. */
@@ -10,7 +11,15 @@ interface QuickAddProps {
 
 export function QuickAdd({ defaults }: QuickAddProps): React.JSX.Element {
   const [title, setTitle] = useState('')
-  const { mutate: createTask } = useCreateTask()
+  const { createTask } = useTaskActions()
+  const focusRequest = useUiStore((state) => state.quickAddFocusRequest)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Focus on request (shortcut N), but not on first mount.
+  const initialRequest = useRef(focusRequest)
+  useEffect(() => {
+    if (focusRequest !== initialRequest.current) inputRef.current?.focus()
+  }, [focusRequest])
 
   return (
     <form
@@ -24,6 +33,7 @@ export function QuickAdd({ defaults }: QuickAddProps): React.JSX.Element {
     >
       <Plus className="size-4 text-muted" aria-hidden />
       <input
+        ref={inputRef}
         aria-label="Nova tarefa"
         placeholder="Nova tarefa"
         value={title}

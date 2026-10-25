@@ -8,6 +8,7 @@ import {
   type Priority,
   type SmartView,
   type Task,
+  type TaskMove,
   type TaskPatch,
   type TaskStatus,
   type ViewMode
@@ -99,6 +100,21 @@ export function taskPatch(value: unknown): TaskPatch {
   if (value.dueDate !== undefined) patch.dueDate = nullableDate(value.dueDate)
   if (value.dueTime !== undefined) patch.dueTime = nullableTime(value.dueTime)
   return patch
+}
+
+export function taskMove(value: unknown): TaskMove {
+  if (!isObject(value)) fail('move', value)
+  const neighbor = (v: unknown): number | null => (v === null ? null : id(v))
+  const move: TaskMove = {}
+  if (value.prevId !== undefined) move.prevId = neighbor(value.prevId)
+  if (value.nextId !== undefined) move.nextId = neighbor(value.nextId)
+  if (value.position !== undefined) {
+    move.position = Number.isFinite(value.position)
+      ? (value.position as number)
+      : fail('position', value.position)
+  }
+  if (value.status !== undefined) move.status = status(value.status)
+  return move
 }
 
 export function newTask(value: unknown): NewTask {

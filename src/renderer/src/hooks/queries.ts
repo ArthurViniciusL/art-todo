@@ -5,6 +5,7 @@ import type {
   NewTask,
   SmartView,
   Task,
+  TaskMove,
   TaskPatch,
   ViewMode
 } from '../../../shared/domain'
@@ -18,7 +19,8 @@ export const queryKeys = {
   tasks: ['tasks'] as const,
   tasksByList: (listId: number) => ['tasks', 'list', listId] as const,
   tasksDue: (until: string, completedSince: number) =>
-    ['tasks', 'due', until, completedSince] as const
+    ['tasks', 'due', until, completedSince] as const,
+  taskSearch: (query: string) => ['tasks', 'search', query] as const
 }
 
 // Settings
@@ -135,6 +137,21 @@ export function useUpdateTask() {
   return useTaskMutation(({ id, patch }: { id: number; patch: TaskPatch }) =>
     invoke('tasks:update', id, patch)
   )
+}
+
+export function useMoveTask() {
+  return useTaskMutation(({ id, target }: { id: number; target: TaskMove }) =>
+    invoke('tasks:move', id, target)
+  )
+}
+
+export function useSearchTasks(query: string) {
+  return useQuery({
+    queryKey: queryKeys.taskSearch(query),
+    queryFn: () => invoke('tasks:search', query),
+    enabled: query.trim().length > 0,
+    placeholderData: (previous) => previous
+  })
 }
 
 export function useRemoveTask() {

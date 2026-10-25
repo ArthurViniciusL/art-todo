@@ -52,5 +52,17 @@ export type TaskPatch = Partial<
   Pick<Task, 'listId' | 'title' | 'notes' | 'status' | 'priority' | 'dueDate' | 'dueTime'>
 >
 
+/**
+ * Drag-and-drop target. `prevId` / `nextId` are the tasks that end up directly above and
+ * below the moved task in its list (null at either end). Without either, the position stays.
+ */
+export interface TaskMove {
+  prevId?: number | null
+  nextId?: number | null
+  /** Exact position, used to put a task back (undo). Wins over prevId / nextId. */
+  position?: number
+  status?: TaskStatus
+}
+
 /** What happens to the tasks of a deleted list. */
 export type ListDeleteMode = 'delete-tasks' | 'move-to-inbox'

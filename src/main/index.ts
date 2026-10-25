@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, Menu } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -63,6 +63,8 @@ function createWindow(settings: SettingsRepository): BrowserWindow {
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.arthurvinicius.arttodo')
+  // No menu bar: its default accelerators (Ctrl+Z, Ctrl+R…) would swallow the app's shortcuts.
+  Menu.setApplicationMenu(null)
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.

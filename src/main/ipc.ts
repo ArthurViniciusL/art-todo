@@ -47,6 +47,8 @@ export function registerIpcHandlers({ lists, tasks, settings }: Repositories): v
     'tasks:getDue': (until, since) => tasks.getDue(v.isoDate(until), v.timestamp(since)),
     'tasks:create': (input) => tasks.create(v.newTask(input)),
     'tasks:update': (id, patch) => tasks.update(v.id(id), v.taskPatch(patch)),
+    'tasks:move': (id, target) => tasks.move(v.id(id), v.taskMove(target)),
+    'tasks:search': (query) => tasks.search(v.text(query, 'query')),
     'tasks:remove': (id) => tasks.remove(v.id(id)),
     'tasks:restore': (task) => tasks.restore(v.task(task))
   }

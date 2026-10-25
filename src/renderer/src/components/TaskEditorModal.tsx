@@ -198,7 +198,14 @@ function TaskEditorForm({ task, onClose }: { task: Task; onClose: () => void }):
 }
 
 /** Edit modal for the task in `editingTaskId`, looked up among the tasks the view shows. */
-export function TaskEditorModal({ tasks }: { tasks: Task[] }): React.JSX.Element {
+export function TaskEditorModal({
+  tasks,
+  isLoaded
+}: {
+  tasks: Task[]
+  /** False while the view's tasks are still loading, so a just-requested task is not dropped. */
+  isLoaded: boolean
+}): React.JSX.Element {
   const editingTaskId = useUiStore((state) => state.editingTaskId)
   const openTask = useUiStore((state) => state.openTask)
   const task = tasks.find((item) => item.id === editingTaskId)
@@ -206,8 +213,8 @@ export function TaskEditorModal({ tasks }: { tasks: Task[] }): React.JSX.Element
 
   // The task can disappear while the modal is open (deleted, list removed).
   useEffect(() => {
-    if (editingTaskId !== null && !task) openTask(null)
-  }, [editingTaskId, task, openTask])
+    if (isLoaded && editingTaskId !== null && !task) openTask(null)
+  }, [isLoaded, editingTaskId, task, openTask])
 
   return (
     <Modal.Backdrop isOpen={task !== undefined} onOpenChange={(isOpen) => !isOpen && close()}>

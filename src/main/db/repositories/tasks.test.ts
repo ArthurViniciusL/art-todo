@@ -97,4 +97,75 @@ describe('tasks repository', () => {
       'recent done'
     ])
   })
+
+  describe('move', () => {
+    const order = (): string[] => tasks.getByList(inboxId).map((t) => t.title)
+
+    it('places a task between two neighbors', () => {
+      const a = tasks.create({ listId: inboxId, title: 'a' })
+      const b = tasks.create({ listId: inboxId, title: 'b' })
+      const c = tasks.create({ listId: inboxId, title: 'c' })
+      tasks.move(c.id, { prevId: a.id, nextId: b.id })
+      expect(order()).toEqual(['a', 'c', 'b'])
+    })
+
+    it('moves to the top and to the bottom', () => {
+      const a = tasks.create({ listId: inboxId, title: 'a' })
+      const b = tasks.create({ listId: inboxId, title: 'b' })
+      tasks.move(b.id, { prevId: null, nextId: a.id })
+      expect(order()).toEqual(['b', 'a'])
+      tasks.move(b.id, { prevId: a.id, nextId: null })
+      expect(order()).toEqual(['a', 'b'])
+    })
+
+    it('renumbers when positions get too close', () => {
+      tasks.create({ listId: inboxId, title: 'a' })
+      const b = tasks.create({ listId: inboxId, title: 'b' })
+      const c = tasks.create({ listId: inboxId, title: 'c' })
+      const d = tasks.create({ listId: inboxId, title: 'd' })
+      // Keep inserting right after "a" until the gap collapses.
+      for (let i = 0; i < 60; i++) {
+        const [first, second] = tasks.getByList(inboxId)
+        const mover = [b, c, d].find((t) => t.id !== second.id)!
+        tasks.move(mover.id, { prevId: first.id, nextId: second.id })
+      }
+      const positions = tasks.getByList(inboxId).map((t) => t.position)
+      expect(new Set(positions).size).toBe(4)
+      expect(order()[0]).toBe('a')
+    })
+
+    it('changes the status without moving when no neighbor is given', () => {
+      const a = tasks.create({ listId: inboxId, title: 'a' })
+      const moved = tasks.move(a.id, { status: 'done' }, 9000)
+      expect(moved).toMatchObject({ status: 'done', completedAt: 9000, position: a.position })
+    })
+
+    it('rejects neighbors from another list', () => {
+      const a = tasks.create({ listId: inboxId, title: 'a' })
+      const other = tasks.create({ listId: otherListId, title: 'x' })
+      expect(() => tasks.move(a.id, { prevId: other.id, nextId: null })).toThrow()
+    })
+  })
+
+  describe('search', () => {
+    it('matches title or notes, ignoring case', () => {
+      tasks.create({ listId: inboxId, title: 'Comprar Pão' })
+      tasks.create({ listId: otherListId, title: 'Ligar', notes: 'perguntar sobre o pão' })
+      tasks.create({ listId: inboxId, title: 'Outra coisa' })
+      expect(
+        tasks
+          .search('pão')
+          .map((t) => t.title)
+          .sort()
+      ).toEqual(['Comprar Pão', 'Ligar'])
+      expect(tasks.search('COMPRAR').map((t) => t.title)).toEqual(['Comprar Pão'])
+    })
+
+    it('treats % and _ literally and ignores blank queries', () => {
+      tasks.create({ listId: inboxId, title: '100% feito' })
+      tasks.create({ listId: inboxId, title: '1000 feito' })
+      expect(tasks.search('100%').map((t) => t.title)).toEqual(['100% feito'])
+      expect(tasks.search('   ')).toEqual([])
+    })
+  })
 })

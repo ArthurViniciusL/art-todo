@@ -1,4 +1,13 @@
-import type { List, ListDeleteMode, NewTask, SmartView, Task, TaskPatch, ViewMode } from './domain'
+import type {
+  List,
+  ListDeleteMode,
+  NewTask,
+  SmartView,
+  Task,
+  TaskMove,
+  TaskPatch,
+  ViewMode
+} from './domain'
 import type { ThemePreference } from './theme'
 
 /**
@@ -21,6 +30,8 @@ export interface IpcContract {
   'tasks:getDue': (until: string, completedSince: number) => Task[]
   'tasks:create': (input: NewTask) => Task
   'tasks:update': (id: number, patch: TaskPatch) => Task
+  'tasks:move': (id: number, target: TaskMove) => Task
+  'tasks:search': (query: string) => Task[]
   'tasks:remove': (id: number) => Task
   'tasks:restore': (task: Task) => Task
 }
@@ -42,6 +53,8 @@ export const IPC_CHANNELS = [
   'tasks:getDue',
   'tasks:create',
   'tasks:update',
+  'tasks:move',
+  'tasks:search',
   'tasks:remove',
   'tasks:restore'
 ] as const satisfies readonly IpcChannel[]

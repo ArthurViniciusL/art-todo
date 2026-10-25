@@ -11,12 +11,19 @@ interface TaskBoardProps {
   /** Order inside the open columns. Done is always newest first. */
   compare: (a: Task, b: Task) => number
   rowOptions?: (task: Task) => TaskRowOptions
+  /** Allow manual reordering inside the open columns (lists, not smart views). */
+  isReorderable?: boolean
 }
 
 const newestDoneFirst = (a: Task, b: Task): number => (b.completedAt ?? 0) - (a.completedAt ?? 0)
 
 /** Three columns: A fazer, Fazendo, Feito. The Feito column can be collapsed. */
-export function TaskBoard({ tasks, compare, rowOptions }: TaskBoardProps): React.JSX.Element {
+export function TaskBoard({
+  tasks,
+  compare,
+  rowOptions,
+  isReorderable = false
+}: TaskBoardProps): React.JSX.Element {
   const [isDoneCollapsed, setIsDoneCollapsed] = useState(false)
 
   const column = (status: TaskStatus): Task[] =>
@@ -62,7 +69,15 @@ export function TaskBoard({ tasks, compare, rowOptions }: TaskBoardProps): React
             </header>
             {!isCollapsed && (
               <div className="min-h-0 flex-1 overflow-y-auto p-0.5">
-                <TaskGrid label={label} tasks={items} layout="stack" rowOptions={rowOptions} />
+                <TaskGrid
+                  label={label}
+                  tasks={items}
+                  layout="stack"
+                  rowOptions={rowOptions}
+                  dropStatus={status}
+                  isReorderable={isReorderable && status !== 'done'}
+                  findTask={(id) => tasks.find((task) => task.id === id)}
+                />
               </div>
             )}
           </section>

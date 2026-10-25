@@ -1,13 +1,16 @@
 import { Toast } from '@heroui/react'
+import { CommandPalette } from './components/CommandPalette'
 import { Sidebar } from './components/Sidebar'
 import { SmartTaskView } from './components/SmartTaskView'
 import { TaskListView } from './components/TaskListView'
 import { useLists } from './hooks/queries'
+import { useGlobalShortcuts } from './hooks/useGlobalShortcuts'
 import { useTheme } from './hooks/useTheme'
 import { useUiStore } from './stores/ui'
 
 function App(): React.JSX.Element {
   useTheme()
+  useGlobalShortcuts()
   const selection = useUiStore((state) => state.selection)
   const { data: lists = [] } = useLists()
 
@@ -23,6 +26,7 @@ function App(): React.JSX.Element {
         {list && <TaskListView key={list.id} list={list} />}
         {selection?.kind === 'view' && <SmartTaskView key={selection.view} view={selection.view} />}
       </main>
+      <CommandPalette />
       <Toast.Provider placement="bottom end" />
     </div>
   )

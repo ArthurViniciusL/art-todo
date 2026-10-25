@@ -16,7 +16,8 @@ export function Sidebar(): React.JSX.Element {
   const select = useUiStore((state) => state.select)
   const { mutate: createList } = useCreateList()
   const { mutate: renameList } = useRenameList()
-  const [isCreating, setIsCreating] = useState(false)
+  const isCreating = useUiStore((state) => state.isCreatingList)
+  const setIsCreating = useUiStore((state) => state.setCreatingList)
   const [renamingId, setRenamingId] = useState<number | null>(null)
   const [deleting, setDeleting] = useState<List | null>(null)
 
