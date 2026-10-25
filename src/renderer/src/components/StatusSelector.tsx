@@ -6,12 +6,15 @@ interface StatusSelectorProps {
   status: TaskStatus
   taskTitle: string
   onChange: (status: TaskStatus) => void
+  /** Show the status name next to the icon, as a label (cards). */
+  showLabel?: boolean
 }
 
 export function StatusSelector({
   status,
   taskTitle,
-  onChange
+  onChange,
+  showLabel = false
 }: StatusSelectorProps): React.JSX.Element {
   const { label, icon: Icon, className } = STATUS_META[status]
 
@@ -21,15 +24,22 @@ export function StatusSelector({
         <Button
           size="sm"
           variant="ghost"
-          isIconOnly
+          isIconOnly={!showLabel}
           aria-label={`Status: ${label}. Alterar status de ${taskTitle}`}
           data-status={status}
-          className="size-7 min-w-7"
+          className={
+            showLabel
+              ? 'h-6 min-w-0 gap-1.5 rounded-full bg-default px-2 text-xs font-medium text-foreground'
+              : 'size-7 min-w-7'
+          }
         >
           <Icon
-            className={`size-[18px] ${className} ${status === 'done' ? 'animate-status-pop' : ''}`}
+            className={`${showLabel ? 'size-3.5' : 'size-[18px]'} ${className} ${
+              status === 'done' ? 'animate-status-pop' : ''
+            }`}
             aria-hidden
           />
+          {showLabel && <span aria-hidden>{label}</span>}
         </Button>
         <Tooltip.Content>
           {label} — clique para alterar · <kbd className="font-sans">S</kbd>

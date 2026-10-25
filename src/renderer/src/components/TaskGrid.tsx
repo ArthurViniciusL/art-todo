@@ -5,11 +5,22 @@ import type { Task } from '../../../shared/domain'
 import { useUpdateTask } from '../hooks/queries'
 import { useTaskActions } from '../hooks/useTaskActions'
 import { useUiStore } from '../stores/ui'
+import { TaskCard } from './TaskCard'
 import { TaskRow, type TaskRowOptions } from './TaskRow'
+
+/** `list`: rows; `cards`: a wrapping grid of cards; `stack`: one column of cards (board). */
+export type TaskGridLayout = 'list' | 'cards' | 'stack'
+
+const LAYOUT_CLASSES: Record<TaskGridLayout, string> = {
+  list: 'flex flex-col',
+  cards: 'grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3',
+  stack: 'flex flex-col gap-2'
+}
 
 interface TaskGridProps {
   label: string
   tasks: Task[]
+  layout?: TaskGridLayout
   /** Per-task row options (list name, time-only labels). */
   rowOptions?: (task: Task) => TaskRowOptions
 }
@@ -25,7 +36,12 @@ function focusSibling(row: HTMLElement, step: 1 | -1): void {
  * Keyboard-navigable task list. Arrow keys come from React Aria; the task shortcuts below
  * only fire when the row itself has focus, so buttons and inputs inside keep their keys.
  */
-export function TaskGrid({ label, tasks, rowOptions }: TaskGridProps): React.JSX.Element {
+export function TaskGrid({
+  label,
+  tasks,
+  layout = 'list',
+  rowOptions
+}: TaskGridProps): React.JSX.Element {
   const { setStatus, cycleStatus, removeTask } = useTaskActions()
   const openTask = useUiStore((state) => state.openTask)
   const renameTask = useUiStore((state) => state.renameTask)
@@ -57,15 +73,30 @@ export function TaskGrid({ label, tasks, rowOptions }: TaskGridProps): React.JSX
 
   return (
     <div onKeyDownCapture={onKeyDownCapture}>
-      <GridList aria-label={label} items={tasks} className="flex flex-col outline-none">
+      <GridList
+        aria-label={label}
+        items={tasks}
+        // React Aria caches rendered items; re-render them when these change.
+        dependencies={[layout, rowOptions]}
+        layout={layout === 'cards' ? 'grid' : 'stack'}
+        className={`outline-none ${LAYOUT_CLASSES[layout]}`}
+      >
         {(task) => (
           <GridListItem
             id={task.id}
             textValue={task.title}
             onDoubleClick={() => openTask(task.id)}
-            className="rounded-md outline-none transition-colors hover:bg-default/60 focus-visible:ring-2 focus-visible:ring-focus"
+            className={`outline-none focus-visible:ring-2 focus-visible:ring-focus ${
+              layout === 'list'
+                ? 'rounded-md transition-colors hover:bg-default/60'
+                : 'rounded-lg transition-shadow hover:shadow-sm'
+            }`}
           >
-            <TaskRow task={task} {...rowOptions?.(task)} />
+            {layout === 'list' ? (
+              <TaskRow task={task} {...rowOptions?.(task)} />
+            ) : (
+              <TaskCard task={task} {...rowOptions?.(task)} />
+            )}
           </GridListItem>
         )}
       </GridList>

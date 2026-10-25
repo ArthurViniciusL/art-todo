@@ -8,6 +8,10 @@ export const PRIORITIES: readonly Priority[] = [0, 1, 2, 3]
 export type ViewMode = 'list' | 'cards' | 'columns'
 export const VIEW_MODES: readonly ViewMode[] = ['list', 'cards', 'columns']
 
+/** Views that collect tasks from every list by due date. */
+export type SmartView = 'today' | 'upcoming'
+export const SMART_VIEW_IDS: readonly SmartView[] = ['today', 'upcoming']
+
 export interface List {
   id: number
   name: string
