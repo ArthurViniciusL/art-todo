@@ -1,6 +1,7 @@
 import { create } from 'zustand'
+import type { SmartView } from '../../../shared/domain'
 
-export type SmartView = 'today' | 'upcoming'
+export type { SmartView }
 
 /** What the content area shows. `null` means the Inbox. */
 export type Selection = { kind: 'list'; listId: number } | { kind: 'view'; view: SmartView } | null

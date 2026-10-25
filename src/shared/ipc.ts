@@ -1,4 +1,4 @@
-import type { List, ListDeleteMode, NewTask, Task, TaskPatch, ViewMode } from './domain'
+import type { List, ListDeleteMode, NewTask, SmartView, Task, TaskPatch, ViewMode } from './domain'
 import type { ThemePreference } from './theme'
 
 /**
@@ -8,6 +8,8 @@ import type { ThemePreference } from './theme'
 export interface IpcContract {
   'settings:getTheme': () => ThemePreference
   'settings:setTheme': (preference: ThemePreference) => void
+  'settings:getSmartViewMode': (view: SmartView) => ViewMode
+  'settings:setSmartViewMode': (view: SmartView, viewMode: ViewMode) => void
 
   'lists:getAll': () => List[]
   'lists:create': (name?: string) => List
@@ -29,6 +31,8 @@ export type IpcChannel = keyof IpcContract
 export const IPC_CHANNELS = [
   'settings:getTheme',
   'settings:setTheme',
+  'settings:getSmartViewMode',
+  'settings:setSmartViewMode',
   'lists:getAll',
   'lists:create',
   'lists:rename',

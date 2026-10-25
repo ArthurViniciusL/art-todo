@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron'
+import type { ViewMode } from '../shared/domain'
 import type { IpcChannel, IpcContract } from '../shared/ipc'
 import * as v from '../shared/validate'
 import type { ListsRepository } from './db/repositories/lists'
@@ -25,6 +26,16 @@ export function registerIpcHandlers({ lists, tasks, settings }: Repositories): v
       settings.set(THEME_KEY, theme)
       applyTheme(theme)
     },
+    'settings:getSmartViewMode': (view) => {
+      const stored = settings.get<unknown>(`viewMode:${v.smartView(view)}`, 'list')
+      try {
+        return v.viewMode(stored)
+      } catch {
+        return 'list' satisfies ViewMode
+      }
+    },
+    'settings:setSmartViewMode': (view, mode) =>
+      settings.set(`viewMode:${v.smartView(view)}`, v.viewMode(mode)),
 
     'lists:getAll': () => lists.getAll(),
     'lists:create': (name) => lists.create(v.optionalText(name, 'name')),

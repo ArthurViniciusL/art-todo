@@ -1,10 +1,12 @@
 import {
   PRIORITIES,
+  SMART_VIEW_IDS,
   TASK_STATUSES,
   VIEW_MODES,
   type ListDeleteMode,
   type NewTask,
   type Priority,
+  type SmartView,
   type Task,
   type TaskPatch,
   type TaskStatus,
@@ -46,6 +48,10 @@ export function theme(value: unknown): ThemePreference {
 
 export function viewMode(value: unknown): ViewMode {
   return VIEW_MODES.includes(value as ViewMode) ? (value as ViewMode) : fail('view mode', value)
+}
+
+export function smartView(value: unknown): SmartView {
+  return SMART_VIEW_IDS.includes(value as SmartView) ? (value as SmartView) : fail('view', value)
 }
 
 export function listDeleteMode(value: unknown): ListDeleteMode {

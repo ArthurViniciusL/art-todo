@@ -1,10 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { ListDeleteMode, NewTask, Task, TaskPatch, ViewMode } from '../../../shared/domain'
+import type {
+  List,
+  ListDeleteMode,
+  NewTask,
+  SmartView,
+  Task,
+  TaskPatch,
+  ViewMode
+} from '../../../shared/domain'
 import type { ThemePreference } from '../../../shared/theme'
 import { invoke } from '../lib/api'
 
 export const queryKeys = {
   theme: ['settings', 'theme'] as const,
+  smartViewMode: (view: SmartView) => ['settings', 'viewMode', view] as const,
   lists: ['lists'] as const,
   tasks: ['tasks'] as const,
   tasksByList: (listId: number) => ['tasks', 'list', listId] as const,
@@ -23,6 +32,22 @@ export function useSetThemePreference() {
   return useMutation({
     mutationFn: (preference: ThemePreference) => invoke('settings:setTheme', preference),
     onMutate: (preference) => client.setQueryData(queryKeys.theme, preference)
+  })
+}
+
+export function useSmartViewMode(view: SmartView) {
+  return useQuery({
+    queryKey: queryKeys.smartViewMode(view),
+    queryFn: () => invoke('settings:getSmartViewMode', view)
+  })
+}
+
+export function useSetSmartViewMode() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: ({ view, viewMode }: { view: SmartView; viewMode: ViewMode }) =>
+      invoke('settings:setSmartViewMode', view, viewMode),
+    onMutate: ({ view, viewMode }) => client.setQueryData(queryKeys.smartViewMode(view), viewMode)
   })
 }
 
@@ -51,11 +76,15 @@ export function useRenameList() {
 }
 
 export function useSetListViewMode() {
-  const onSuccess = useInvalidateLists()
+  const client = useQueryClient()
   return useMutation({
     mutationFn: ({ id, viewMode }: { id: number; viewMode: ViewMode }) =>
       invoke('lists:setViewMode', id, viewMode),
-    onSuccess
+    // Switch instantly; the mutation only persists the choice.
+    onMutate: ({ id, viewMode }) =>
+      client.setQueryData<List[]>(queryKeys.lists, (lists) =>
+        lists?.map((list) => (list.id === id ? { ...list, viewMode } : list))
+      )
   })
 }
 
