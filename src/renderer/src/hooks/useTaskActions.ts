@@ -1,9 +1,10 @@
 import { toast } from '@heroui/react'
 import { useCallback } from 'react'
-import type { Task, TaskStatus } from '../../../shared/domain'
+import type { NewTask, Task, TaskMove, TaskStatus } from '../../../shared/domain'
 import { useUiStore } from '../stores/ui'
+import { useUndoStore } from '../stores/undo'
 import { nextStatus } from '../task-status'
-import { useRemoveTask, useRestoreTask, useUpdateTask } from './queries'
+import { useCreateTask, useMoveTask, useRemoveTask, useRestoreTask, useUpdateTask } from './queries'
 
 /** How long a task stays in place, struck through, after it is marked done. */
 export const DONE_LINGER_MS = 3000
@@ -11,16 +12,22 @@ const UNDO_TOAST_MS = 5000
 
 const doneTimers = new Map<number, ReturnType<typeof setTimeout>>()
 
+/** Task changes that can be undone with Ctrl+Z. */
 export function useTaskActions(): {
+  createTask: (input: NewTask) => void
   setStatus: (task: Task, status: TaskStatus) => void
   cycleStatus: (task: Task) => void
   undoDone: (task: Task) => void
+  moveTask: (task: Task, target: TaskMove) => void
   removeTask: (task: Task) => void
 } {
+  const { mutate: create } = useCreateTask()
   const { mutate: update } = useUpdateTask()
+  const { mutate: move } = useMoveTask()
   const { mutate: remove } = useRemoveTask()
   const { mutate: restore } = useRestoreTask()
   const setRecentlyDone = useUiStore((state) => state.setRecentlyDone)
+  const pushUndo = useUndoStore((state) => state.push)
 
   const clearLinger = useCallback(
     (id: number) => {
@@ -31,11 +38,22 @@ export function useTaskActions(): {
     [setRecentlyDone]
   )
 
+  const createTask = useCallback(
+    (input: NewTask) => {
+      create(input, {
+        onSuccess: (created) => {
+          if (created) pushUndo('Criar tarefa', () => remove(created.id))
+        }
+      })
+    },
+    [create, pushUndo, remove]
+  )
+
   const setStatus = useCallback(
-    (task: Task, status: TaskStatus) => {
+    (task: Task, status: TaskStatus, linger = true) => {
       if (status === task.status) return
       clearLinger(task.id)
-      if (status === 'done') {
+      if (status === 'done' && linger) {
         setRecentlyDone(task.id, true)
         doneTimers.set(
           task.id,
@@ -43,8 +61,12 @@ export function useTaskActions(): {
         )
       }
       update({ id: task.id, patch: { status } })
+      pushUndo('Alterar status', () => {
+        clearLinger(task.id)
+        update({ id: task.id, patch: { status: task.status } })
+      })
     },
-    [clearLinger, setRecentlyDone, update]
+    [clearLinger, pushUndo, setRecentlyDone, update]
   )
 
   const undoDone = useCallback(
@@ -55,19 +77,30 @@ export function useTaskActions(): {
     [clearLinger, update]
   )
 
+  const moveTask = useCallback(
+    (task: Task, target: TaskMove) => {
+      move({ id: task.id, target })
+      pushUndo('Mover tarefa', () =>
+        move({ id: task.id, target: { position: task.position, status: task.status } })
+      )
+    },
+    [move, pushUndo]
+  )
+
   const removeTask = useCallback(
     (task: Task) => {
       clearLinger(task.id)
       remove(task.id, {
         onSuccess: (removed) => {
           if (!removed) return
+          const undo = pushUndo('Excluir tarefa', () => restore(removed))
           const key = toast('Tarefa excluída', {
             description: removed.title,
             timeout: UNDO_TOAST_MS,
             actionProps: {
               children: 'Desfazer',
               onPress: () => {
-                restore(removed)
+                undo()
                 toast.close(key)
               }
             }
@@ -75,13 +108,15 @@ export function useTaskActions(): {
         }
       })
     },
-    [clearLinger, remove, restore]
+    [clearLinger, pushUndo, remove, restore]
   )
 
   return {
+    createTask,
     setStatus,
     cycleStatus: (task) => setStatus(task, nextStatus(task.status)),
     undoDone,
+    moveTask,
     removeTask
   }
 }

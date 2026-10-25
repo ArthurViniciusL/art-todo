@@ -1,5 +1,5 @@
-import { and, asc, eq, gte, isNotNull, lte, max, ne, or } from 'drizzle-orm'
-import type { NewTask, Task, TaskPatch } from '../../../shared/domain'
+import { and, asc, desc, eq, gte, isNotNull, lte, max, ne, or, sql } from 'drizzle-orm'
+import type { NewTask, Task, TaskMove, TaskPatch } from '../../../shared/domain'
 import type { Db } from '../client'
 import { tasks } from '../schema'
 
@@ -17,6 +17,47 @@ export function createTasksRepository(db: Db) {
       .where(eq(tasks.listId, listId))
       .get()
     return (row?.value ?? 0) + 1
+  }
+
+  /** Rewrites a list's positions as 1, 2, 3… keeping the current order. */
+  const renumber = (listId: number): void => {
+    const ordered = db
+      .select({ id: tasks.id })
+      .from(tasks)
+      .where(eq(tasks.listId, listId))
+      .orderBy(asc(tasks.position))
+      .all()
+    ordered.forEach(({ id }, index) => {
+      db.update(tasks)
+        .set({ position: index + 1 })
+        .where(eq(tasks.id, id))
+        .run()
+    })
+  }
+
+  /** Position between two neighbors in a list; renumbers when floats get too close. */
+  const positionBetween = (
+    listId: number,
+    prevId: number | null,
+    nextId: number | null
+  ): number => {
+    const neighbor = (id: number | null): Task | null => {
+      if (id === null) return null
+      const task = getById(id)
+      if (task.listId !== listId) throw new Error(`Task ${id} is not in list ${listId}`)
+      return task
+    }
+    let prev = neighbor(prevId)
+    let next = neighbor(nextId)
+    if (prev && next && next.position - prev.position < 1e-6) {
+      renumber(listId)
+      prev = getById(prev.id)
+      next = getById(next.id)
+    }
+    if (prev && next) return (prev.position + next.position) / 2
+    if (prev) return prev.position + 1
+    if (next) return next.position - 1
+    return nextPosition(listId)
   }
 
   return {
@@ -86,6 +127,52 @@ export function createTasksRepository(db: Db) {
         Object.assign(next, { position: nextPosition(patch.listId) })
       }
       return db.update(tasks).set(next).where(eq(tasks.id, id)).returning().get()
+    },
+
+    /** Reorders and/or changes the status of a task (drag and drop). */
+    move(id: number, target: TaskMove, now = Date.now()): Task {
+      const current = getById(id)
+      return db.transaction(() => {
+        const repositions = target.prevId !== undefined || target.nextId !== undefined
+        const position =
+          target.position ??
+          (repositions
+            ? positionBetween(current.listId, target.prevId ?? null, target.nextId ?? null)
+            : current.position)
+        const statusChanges = target.status !== undefined && target.status !== current.status
+        return db
+          .update(tasks)
+          .set({
+            position,
+            ...(statusChanges && {
+              status: target.status,
+              completedAt: target.status === 'done' ? now : null
+            }),
+            updatedAt: now
+          })
+          .where(eq(tasks.id, id))
+          .returning()
+          .get()
+      })
+    },
+
+    /** Case-insensitive match on title or notes, most recently updated first. */
+    search(query: string, limit = 30): Task[] {
+      const trimmed = query.trim()
+      if (!trimmed) return []
+      const pattern = `%${trimmed.replace(/[\\%_]/g, (char) => `\\${char}`)}%`
+      return db
+        .select()
+        .from(tasks)
+        .where(
+          or(
+            sql`${tasks.title} LIKE ${pattern} ESCAPE '\\'`,
+            sql`${tasks.notes} LIKE ${pattern} ESCAPE '\\'`
+          )
+        )
+        .orderBy(desc(tasks.updatedAt))
+        .limit(limit)
+        .all()
     },
 
     remove(id: number): Task {

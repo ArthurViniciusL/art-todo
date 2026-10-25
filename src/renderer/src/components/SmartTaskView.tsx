@@ -46,7 +46,7 @@ function groupHeading(group: TaskGroup, today: string): string {
 export function SmartTaskView({ view }: { view: SmartView }): React.JSX.Element {
   const { today, startOfToday } = useToday()
   const until = view === 'today' ? today : FAR_FUTURE
-  const { data: tasks = [] } = useDueTasks(until, startOfToday)
+  const { data: tasks = [], isSuccess } = useDueTasks(until, startOfToday)
   const { data: lists = [] } = useLists()
   const recentlyDone = useUiStore((state) => state.recentlyDone)
   const inbox = lists.find((list) => list.isInbox)
@@ -117,7 +117,7 @@ export function SmartTaskView({ view }: { view: SmartView }): React.JSX.Element 
           )}
         </div>
       </div>
-      <TaskEditorModal tasks={tasks} />
+      <TaskEditorModal tasks={tasks} isLoaded={isSuccess} />
     </>
   )
 }
