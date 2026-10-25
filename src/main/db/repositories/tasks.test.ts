@@ -76,4 +76,25 @@ describe('tasks repository', () => {
     expect(tasks.getByList(inboxId)).toEqual([])
     expect(tasks.restore(removed)).toEqual(task)
   })
+
+  it('returns due tasks up to a date, skipping old done tasks', () => {
+    tasks.create({ listId: inboxId, title: 'no date' })
+    tasks.create({ listId: inboxId, title: 'overdue', dueDate: '2026-10-01' })
+    tasks.create({ listId: otherListId, title: 'today', dueDate: '2026-10-25' })
+    tasks.create({ listId: inboxId, title: 'far', dueDate: '2027-01-01' })
+    const oldDone = tasks.create({ listId: inboxId, title: 'old done', dueDate: '2026-10-20' })
+    tasks.update(oldDone.id, { status: 'done' }, 1000)
+    const recentDone = tasks.create({
+      listId: inboxId,
+      title: 'recent done',
+      dueDate: '2026-10-25'
+    })
+    tasks.update(recentDone.id, { status: 'done' }, 5000)
+
+    expect(tasks.getDue('2026-10-25', 4000).map((t) => t.title)).toEqual([
+      'overdue',
+      'today',
+      'recent done'
+    ])
+  })
 })

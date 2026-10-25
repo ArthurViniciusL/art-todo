@@ -7,7 +7,9 @@ export const queryKeys = {
   theme: ['settings', 'theme'] as const,
   lists: ['lists'] as const,
   tasks: ['tasks'] as const,
-  tasksByList: (listId: number) => ['tasks', 'list', listId] as const
+  tasksByList: (listId: number) => ['tasks', 'list', listId] as const,
+  tasksDue: (until: string, completedSince: number) =>
+    ['tasks', 'due', until, completedSince] as const
 }
 
 // Settings
@@ -76,6 +78,14 @@ export function useTasksByList(listId: number | undefined) {
     queryKey: queryKeys.tasksByList(listId ?? 0),
     queryFn: () => invoke('tasks:getByList', listId as number),
     enabled: listId !== undefined
+  })
+}
+
+/** Due tasks for the smart views; see TasksRepository.getDue. */
+export function useDueTasks(until: string, completedSince: number) {
+  return useQuery({
+    queryKey: queryKeys.tasksDue(until, completedSince),
+    queryFn: () => invoke('tasks:getDue', until, completedSince)
   })
 }
 

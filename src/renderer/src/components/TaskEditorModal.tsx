@@ -1,34 +1,65 @@
 import {
   Button,
+  DateField,
+  Input,
   Label,
   Modal,
   TextArea,
   TextField,
-  Input,
+  TimeField,
   ToggleButton,
   ToggleButtonGroup
 } from '@heroui/react'
+import { parseDate, parseTime, type CalendarDate, type Time } from '@internationalized/date'
 import { useEffect, useState } from 'react'
-import { TASK_STATUSES, type Task, type TaskStatus } from '../../../shared/domain'
-import { useTasksByList, useUpdateTask } from '../hooks/queries'
+import { addDays, toIsoDate } from '../../../shared/dates'
+import {
+  PRIORITIES,
+  TASK_STATUSES,
+  type Priority,
+  type Task,
+  type TaskStatus
+} from '../../../shared/domain'
+import { useUpdateTask } from '../hooks/queries'
 import { useTaskActions } from '../hooks/useTaskActions'
 import { useUiStore } from '../stores/ui'
 import { STATUS_META } from '../task-status'
+
+const PRIORITY_LABELS: Record<Priority, string> = {
+  0: 'Nenhuma',
+  1: 'Baixa',
+  2: 'Média',
+  3: 'Alta'
+}
+
+const toTimeString = (time: Time): string =>
+  `${String(time.hour).padStart(2, '0')}:${String(time.minute).padStart(2, '0')}`
 
 function TaskEditorForm({ task, onClose }: { task: Task; onClose: () => void }): React.JSX.Element {
   const [title, setTitle] = useState(task.title)
   const [notes, setNotes] = useState(task.notes)
   const [status, setStatusDraft] = useState<TaskStatus>(task.status)
+  const [priority, setPriority] = useState<Priority>(task.priority)
+  const [dueDate, setDueDate] = useState<CalendarDate | null>(
+    task.dueDate ? parseDate(task.dueDate) : null
+  )
+  const [dueTime, setDueTime] = useState<Time | null>(task.dueTime ? parseTime(task.dueTime) : null)
   const { mutate: update } = useUpdateTask()
   const { setStatus, removeTask } = useTaskActions()
 
   const save = (): void => {
     if (!title.trim()) return
-    if (title !== task.title || notes !== task.notes) {
-      update({ id: task.id, patch: { title, notes } })
-    }
+    const date = dueDate?.toString() ?? null
+    const time = date && dueTime ? toTimeString(dueTime) : null
+    update({ id: task.id, patch: { title, notes, priority, dueDate: date, dueTime: time } })
     setStatus(task, status)
     onClose()
+  }
+
+  const today = toIsoDate(new Date())
+  const setDay = (iso: string | null): void => {
+    setDueDate(iso ? parseDate(iso) : null)
+    if (!iso) setDueTime(null)
   }
 
   return (
@@ -54,8 +85,69 @@ function TaskEditorForm({ task, onClose }: { task: Task; onClose: () => void }):
         </TextField>
         <TextField value={notes} onChange={setNotes}>
           <Label>Notas</Label>
-          <TextArea rows={5} placeholder="Detalhes, links, ideias…" />
+          <TextArea rows={4} placeholder="Detalhes, links, ideias…" />
         </TextField>
+
+        <div className="flex flex-wrap items-end gap-3">
+          <DateField value={dueDate} onChange={(value) => setDay(value?.toString() ?? null)}>
+            <Label>Data</Label>
+            <DateField.Group>
+              <DateField.Input>
+                {(segment) => <DateField.Segment segment={segment} />}
+              </DateField.Input>
+            </DateField.Group>
+          </DateField>
+          <TimeField value={dueTime} onChange={setDueTime} isDisabled={!dueDate} hourCycle={24}>
+            <Label>Hora</Label>
+            <TimeField.Group>
+              <TimeField.Input>
+                {(segment) => <TimeField.Segment segment={segment} />}
+              </TimeField.Input>
+            </TimeField.Group>
+          </TimeField>
+          <div className="flex gap-1">
+            <Button size="sm" variant="tertiary" onPress={() => setDay(today)}>
+              Hoje
+            </Button>
+            <Button size="sm" variant="tertiary" onPress={() => setDay(addDays(today, 1))}>
+              Amanhã
+            </Button>
+            <Button size="sm" variant="ghost" onPress={() => setDay(null)} isDisabled={!dueDate}>
+              Sem data
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <span id="priority-label" className="text-sm font-medium">
+            Prioridade
+          </span>
+          <ToggleButtonGroup
+            aria-labelledby="priority-label"
+            selectionMode="single"
+            disallowEmptySelection
+            selectedKeys={[String(priority)]}
+            onSelectionChange={(keys) => {
+              const [key] = keys
+              if (key !== undefined) setPriority(Number(key) as Priority)
+            }}
+          >
+            {PRIORITIES.map((option) => (
+              <ToggleButton key={option} id={String(option)}>
+                {option > 0 && (
+                  <span
+                    aria-hidden
+                    className={`font-bold ${option === 3 ? 'text-priority-high' : 'text-muted'}`}
+                  >
+                    {'!'.repeat(option)}
+                  </span>
+                )}
+                {PRIORITY_LABELS[option]}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+        </div>
+
         <div className="flex flex-col gap-1.5">
           <span id="status-label" className="text-sm font-medium">
             Status
@@ -105,10 +197,10 @@ function TaskEditorForm({ task, onClose }: { task: Task; onClose: () => void }):
   )
 }
 
-export function TaskEditorModal({ listId }: { listId: number }): React.JSX.Element {
+/** Edit modal for the task in `editingTaskId`, looked up among the tasks the view shows. */
+export function TaskEditorModal({ tasks }: { tasks: Task[] }): React.JSX.Element {
   const editingTaskId = useUiStore((state) => state.editingTaskId)
   const openTask = useUiStore((state) => state.openTask)
-  const { data: tasks = [] } = useTasksByList(listId)
   const task = tasks.find((item) => item.id === editingTaskId)
   const close = (): void => openTask(null)
 
@@ -119,7 +211,7 @@ export function TaskEditorModal({ listId }: { listId: number }): React.JSX.Eleme
 
   return (
     <Modal.Backdrop isOpen={task !== undefined} onOpenChange={(isOpen) => !isOpen && close()}>
-      <Modal.Container size="md">
+      <Modal.Container size="lg">
         <Modal.Dialog aria-label="Editar tarefa">
           {task && <TaskEditorForm key={task.id} task={task} onClose={close} />}
         </Modal.Dialog>

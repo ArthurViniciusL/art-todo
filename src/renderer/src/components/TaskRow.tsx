@@ -3,15 +3,23 @@ import type { Task } from '../../../shared/domain'
 import { useUpdateTask } from '../hooks/queries'
 import { useTaskActions } from '../hooks/useTaskActions'
 import { useUiStore } from '../stores/ui'
+import { DueLabel } from './DueLabel'
 import { InlineNameInput } from './InlineNameInput'
 import { PriorityMark } from './PriorityMark'
 import { StatusSelector } from './StatusSelector'
 
-interface TaskRowProps {
+export interface TaskRowOptions {
+  /** Name of the task's list, shown in views that mix lists. */
+  listName?: string
+  /** Show only the time, for groups that already name the day. */
+  timeOnly?: boolean
+}
+
+interface TaskRowProps extends TaskRowOptions {
   task: Task
 }
 
-export function TaskRow({ task }: TaskRowProps): React.JSX.Element {
+export function TaskRow({ task, listName, timeOnly }: TaskRowProps): React.JSX.Element {
   const isRenaming = useUiStore((state) => state.renamingTaskId === task.id)
   const isRecentlyDone = useUiStore((state) => state.recentlyDone.has(task.id))
   const renameTask = useUiStore((state) => state.renameTask)
@@ -51,6 +59,10 @@ export function TaskRow({ task }: TaskRowProps): React.JSX.Element {
           Desfazer
         </Button>
       )}
+      {listName && (
+        <span className="max-w-32 shrink-0 truncate text-xs text-muted">{listName}</span>
+      )}
+      <DueLabel task={task} timeOnly={timeOnly} />
       <PriorityMark priority={task.priority} />
     </div>
   )

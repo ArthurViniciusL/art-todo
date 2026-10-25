@@ -1,8 +1,14 @@
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
+import type { NewTask } from '../../../shared/domain'
 import { useCreateTask } from '../hooks/queries'
 
-export function QuickAdd({ listId }: { listId: number }): React.JSX.Element {
+interface QuickAddProps {
+  /** Fields every new task gets, at least the target list. */
+  defaults: Omit<NewTask, 'title'>
+}
+
+export function QuickAdd({ defaults }: QuickAddProps): React.JSX.Element {
   const [title, setTitle] = useState('')
   const { mutate: createTask } = useCreateTask()
 
@@ -12,7 +18,7 @@ export function QuickAdd({ listId }: { listId: number }): React.JSX.Element {
       onSubmit={(event) => {
         event.preventDefault()
         if (!title.trim()) return
-        createTask({ listId, title })
+        createTask({ ...defaults, title })
         setTitle('')
       }}
     >

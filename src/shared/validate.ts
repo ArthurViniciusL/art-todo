@@ -72,6 +72,16 @@ function nullableTime(value: unknown): string | null {
     : fail('time', value)
 }
 
+export function isoDate(value: unknown): string {
+  return typeof value === 'string' && DATE_RE.test(value) ? value : fail('date', value)
+}
+
+export function timestamp(value: unknown): number {
+  return Number.isSafeInteger(value) && (value as number) >= 0
+    ? (value as number)
+    : fail('timestamp', value)
+}
+
 export function taskPatch(value: unknown): TaskPatch {
   if (!isObject(value)) fail('task patch', value)
   const patch: TaskPatch = {}

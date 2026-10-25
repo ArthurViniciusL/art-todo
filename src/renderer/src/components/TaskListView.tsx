@@ -5,6 +5,7 @@ import { useTasksByList } from '../hooks/queries'
 import { useUiStore } from '../stores/ui'
 import { ContentHeader } from './ContentHeader'
 import { QuickAdd } from './QuickAdd'
+import { TaskEditorModal } from './TaskEditorModal'
 import { TaskGrid } from './TaskGrid'
 
 export function TaskListView({ list }: { list: List }): React.JSX.Element {
@@ -21,7 +22,7 @@ export function TaskListView({ list }: { list: List }): React.JSX.Element {
       <ContentHeader title={list.name} />
       <div className="flex-1 overflow-y-auto px-6 pb-10">
         <div className="mx-auto flex max-w-2xl flex-col gap-1">
-          <QuickAdd listId={list.id} />
+          <QuickAdd defaults={{ listId: list.id }} />
           <TaskGrid label="Tarefas" tasks={active} />
 
           {tasks.length === 0 && (
@@ -49,6 +50,7 @@ export function TaskListView({ list }: { list: List }): React.JSX.Element {
           )}
         </div>
       </div>
+      <TaskEditorModal tasks={tasks} />
     </>
   )
 }

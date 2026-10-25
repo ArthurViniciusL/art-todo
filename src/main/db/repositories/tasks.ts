@@ -1,4 +1,4 @@
-import { asc, eq, max } from 'drizzle-orm'
+import { and, asc, eq, gte, isNotNull, lte, max, ne, or } from 'drizzle-orm'
 import type { NewTask, Task, TaskPatch } from '../../../shared/domain'
 import type { Db } from '../client'
 import { tasks } from '../schema'
@@ -28,6 +28,26 @@ export function createTasksRepository(db: Db) {
         .from(tasks)
         .where(eq(tasks.listId, listId))
         .orderBy(asc(tasks.position))
+        .all()
+    },
+
+    /**
+     * Tasks with a due date up to `until` (inclusive) for the smart views. Done tasks are
+     * included only when completed at or after `completedSince`, so a just-finished task can
+     * stay visible for a moment.
+     */
+    getDue(until: string, completedSince: number): Task[] {
+      return db
+        .select()
+        .from(tasks)
+        .where(
+          and(
+            isNotNull(tasks.dueDate),
+            lte(tasks.dueDate, until),
+            or(ne(tasks.status, 'done'), gte(tasks.completedAt, completedSince))
+          )
+        )
+        .orderBy(asc(tasks.dueDate), asc(tasks.position))
         .all()
     },
 
