@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, gte, isNotNull, lte, max, ne, or, sql } from 'drizzle-orm'
 import type { NewTask, Task, TaskMove, TaskPatch } from '../../../shared/domain'
 import type { Db } from '../client'
-import { tasks } from '../schema'
+import { lists, tasks } from '../schema'
 
 export function createTasksRepository(db: Db) {
   const getById = (id: number): Task => {
@@ -129,20 +129,26 @@ export function createTasksRepository(db: Db) {
       return db.update(tasks).set(next).where(eq(tasks.id, id)).returning().get()
     },
 
-    /** Reorders and/or changes the status of a task (drag and drop). */
+    /** Reorders a task, changes its status and/or moves it to another list. */
     move(id: number, target: TaskMove, now = Date.now()): Task {
       const current = getById(id)
       return db.transaction(() => {
-        const repositions = target.prevId !== undefined || target.nextId !== undefined
+        const listId = target.listId ?? current.listId
+        if (!db.select({ id: lists.id }).from(lists).where(eq(lists.id, listId)).get()) {
+          throw new Error(`List ${listId} not found`)
+        }
+        const repositions =
+          target.prevId !== undefined || target.nextId !== undefined || listId !== current.listId
         const position =
           target.position ??
           (repositions
-            ? positionBetween(current.listId, target.prevId ?? null, target.nextId ?? null)
+            ? positionBetween(listId, target.prevId ?? null, target.nextId ?? null)
             : current.position)
         const statusChanges = target.status !== undefined && target.status !== current.status
         return db
           .update(tasks)
           .set({
+            listId,
             position,
             ...(statusChanges && {
               status: target.status,

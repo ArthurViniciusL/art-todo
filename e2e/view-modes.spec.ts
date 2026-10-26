@@ -56,6 +56,22 @@ test('columns split tasks by status and status changes move them', async () => {
   await expect(column('Feito')).toHaveCount(0)
 })
 
+test('creates a task from the A fazer column', async () => {
+  app = await launchApp()
+  page = await app.firstWindow()
+  await mode('Colunas').click()
+  const todo = page.getByRole('region', { name: 'A fazer' })
+  const input = todo.getByRole('textbox', { name: 'Nova tarefa' })
+  await expect(page.getByRole('textbox', { name: 'Nova tarefa' })).toHaveCount(1)
+  await input.fill('Comprar café')
+  await input.press('Enter')
+  await expect(
+    page
+      .getByRole('grid', { name: 'A fazer', exact: true })
+      .getByRole('row', { name: /Comprar café/ })
+  ).toBeVisible()
+})
+
 test('the mode is saved per list and survives a restart', async () => {
   const profile = newProfileDir()
   app = await launchApp(profile)

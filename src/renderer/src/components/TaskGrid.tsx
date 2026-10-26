@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from 'react'
+import type { KeyboardEvent, MouseEvent } from 'react'
 import {
   DropIndicator,
   GridList,
@@ -12,6 +12,7 @@ import { toIsoDate } from '../../../shared/dates'
 import type { Task, TaskMove, TaskStatus } from '../../../shared/domain'
 import { useUpdateTask } from '../hooks/queries'
 import { useTaskActions } from '../hooks/useTaskActions'
+import { focusSibling } from '../lib/task-focus'
 import { useUiStore } from '../stores/ui'
 import { TaskCard } from './TaskCard'
 import { TaskRow, type TaskRowOptions } from './TaskRow'
@@ -50,13 +51,6 @@ function neighbors(order: Task[], movedId: number, target: DropTarget): TaskMove
   return target.dropPosition === 'before'
     ? { prevId: rest[index - 1]?.id ?? null, nextId: rest[index].id }
     : { prevId: rest[index].id, nextId: rest[index + 1]?.id ?? null }
-}
-
-function focusSibling(row: HTMLElement, step: 1 | -1): void {
-  const rows = Array.from(
-    row.closest('[role=grid]')?.querySelectorAll<HTMLElement>('[role=row]') ?? []
-  )
-  rows[rows.indexOf(row) + step]?.focus()
 }
 
 /**
@@ -125,16 +119,32 @@ export function TaskGrid({
   })
   const openTask = useUiStore((state) => state.openTask)
   const renameTask = useUiStore((state) => state.renameTask)
+  const setContextMenu = useUiStore((state) => state.setTaskContextMenu)
   const { mutate: update } = useUpdateTask()
+
+  const taskOfRow = (row: HTMLElement | null): Task | undefined =>
+    tasks.find((item) => String(item.id) === row?.dataset.key)
+
+  const onContextMenu = (event: MouseEvent<HTMLDivElement>): void => {
+    // Text fields in a row (inline rename) keep the native Cut / Copy / Paste menu.
+    if ((event.target as HTMLElement).closest('input, textarea')) return
+    const task = taskOfRow((event.target as HTMLElement).closest<HTMLElement>('[role=row]'))
+    if (!task) return
+    event.preventDefault()
+    setContextMenu({ taskId: task.id, x: event.clientX, y: event.clientY })
+  }
 
   const onKeyDownCapture = (event: KeyboardEvent<HTMLDivElement>): void => {
     const row = event.target as HTMLElement
     if (row.getAttribute('role') !== 'row') return
-    const task = tasks.find((item) => String(item.id) === row.dataset.key)
+    const task = taskOfRow(row)
     if (!task) return
     const plain = !event.ctrlKey && !event.metaKey && !event.altKey
 
-    if (event.key === ' ' && plain) setStatus(task, task.status === 'done' ? 'todo' : 'done')
+    if (event.key === 'ContextMenu' || (event.key === 'F10' && event.shiftKey)) {
+      const rect = row.getBoundingClientRect()
+      setContextMenu({ taskId: task.id, x: rect.left + 16, y: rect.bottom })
+    } else if (event.key === ' ' && plain) setStatus(task, task.status === 'done' ? 'todo' : 'done')
     else if (event.key.toLowerCase() === 's' && plain) cycleStatus(task)
     else if (event.key.toLowerCase() === 't' && plain)
       update({ id: task.id, patch: { dueDate: toIsoDate(new Date()) } })
@@ -152,7 +162,7 @@ export function TaskGrid({
   }
 
   return (
-    <div onKeyDownCapture={onKeyDownCapture}>
+    <div onKeyDownCapture={onKeyDownCapture} onContextMenu={onContextMenu}>
       <GridList
         aria-label={label}
         items={tasks}

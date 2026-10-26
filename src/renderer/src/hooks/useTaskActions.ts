@@ -1,6 +1,6 @@
 import { toast } from '@heroui/react'
 import { useCallback } from 'react'
-import type { NewTask, Task, TaskMove, TaskStatus } from '../../../shared/domain'
+import type { List, NewTask, Task, TaskMove, TaskStatus } from '../../../shared/domain'
 import { useUiStore } from '../stores/ui'
 import { useUndoStore } from '../stores/undo'
 import { nextStatus } from '../task-status'
@@ -12,6 +12,20 @@ const UNDO_TOAST_MS = 5000
 
 const doneTimers = new Map<number, ReturnType<typeof setTimeout>>()
 
+function showUndoToast(title: string, description: string, undo: () => void): void {
+  const key = toast(title, {
+    description,
+    timeout: UNDO_TOAST_MS,
+    actionProps: {
+      children: 'Desfazer',
+      onPress: () => {
+        undo()
+        toast.close(key)
+      }
+    }
+  })
+}
+
 /** Task changes that can be undone with Ctrl+Z. */
 export function useTaskActions(): {
   createTask: (input: NewTask) => void
@@ -19,12 +33,13 @@ export function useTaskActions(): {
   cycleStatus: (task: Task) => void
   undoDone: (task: Task) => void
   moveTask: (task: Task, target: TaskMove) => void
+  moveToList: (task: Task, list: List) => void
   removeTask: (task: Task) => void
 } {
   const { mutate: create } = useCreateTask()
   const { mutate: update } = useUpdateTask()
   const { mutate: move } = useMoveTask()
-  const { mutate: remove } = useRemoveTask()
+  const { mutate: remove, mutateAsync: removeAsync } = useRemoveTask()
   const { mutate: restore } = useRestoreTask()
   const setRecentlyDone = useUiStore((state) => state.setRecentlyDone)
   const pushUndo = useUndoStore((state) => state.push)
@@ -87,28 +102,32 @@ export function useTaskActions(): {
     [move, pushUndo]
   )
 
+  const moveToList = useCallback(
+    (task: Task, list: List) => {
+      if (list.id === task.listId) return
+      move({ id: task.id, target: { listId: list.id } })
+      const undo = pushUndo('Mover para lista', () =>
+        move({ id: task.id, target: { listId: task.listId, position: task.position } })
+      )
+      showUndoToast(`Movida para ${list.name}`, task.title, undo)
+    },
+    [move, pushUndo]
+  )
+
   const removeTask = useCallback(
     (task: Task) => {
       clearLinger(task.id)
-      remove(task.id, {
-        onSuccess: (removed) => {
+      // A promise, not mutate's onSuccess: the caller may unmount first (the task menu does).
+      void removeAsync(task.id).then(
+        (removed) => {
           if (!removed) return
           const undo = pushUndo('Excluir tarefa', () => restore(removed))
-          const key = toast('Tarefa excluída', {
-            description: removed.title,
-            timeout: UNDO_TOAST_MS,
-            actionProps: {
-              children: 'Desfazer',
-              onPress: () => {
-                undo()
-                toast.close(key)
-              }
-            }
-          })
-        }
-      })
+          showUndoToast('Tarefa excluída', removed.title, undo)
+        },
+        () => {}
+      )
     },
-    [clearLinger, pushUndo, remove, restore]
+    [clearLinger, pushUndo, removeAsync, restore]
   )
 
   return {
@@ -117,6 +136,7 @@ export function useTaskActions(): {
     cycleStatus: (task) => setStatus(task, nextStatus(task.status)),
     undoDone,
     moveTask,
+    moveToList,
     removeTask
   }
 }

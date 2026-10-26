@@ -121,6 +121,7 @@ export function taskMove(value: unknown): TaskMove {
       : fail('position', value.position)
   }
   if (value.status !== undefined) move.status = status(value.status)
+  if (value.listId !== undefined) move.listId = id(value.listId)
   return move
 }
 

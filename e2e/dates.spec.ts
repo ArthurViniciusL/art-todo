@@ -45,6 +45,11 @@ test('sets date and priority in the modal', async () => {
   const row = page.getByRole('row', { name: 'Entregar relatório' })
   await expect(row.getByText('Amanhã')).toBeVisible()
   await expect(row.getByLabel('Prioridade alta')).toBeVisible()
+
+  await row.dblclick()
+  await dialog.getByRole('radio', { name: /Crítico/ }).click()
+  await dialog.getByRole('button', { name: 'Salvar' }).click()
+  await expect(row.getByLabel('Prioridade crítico')).toBeVisible()
 })
 
 test('T schedules the focused task for today and it shows in Hoje', async () => {

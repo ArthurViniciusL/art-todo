@@ -16,6 +16,7 @@ import { ExportButton, ExportDialog } from './ExportDialog'
 import { QuickAdd } from './QuickAdd'
 import { TaskEditorModal } from './TaskEditorModal'
 import { TaskBoard } from './TaskBoard'
+import { TaskContextMenu } from './TaskContextMenu'
 import { TaskGrid } from './TaskGrid'
 import { ViewModeSwitcher } from './ViewModeSwitcher'
 
@@ -54,6 +55,9 @@ export function SmartTaskView({ view }: { view: SmartView }): React.JSX.Element 
   const listNames = new Map(lists.map((list) => [list.id, list.name]))
   const copy = VIEW_COPY[view]
   const [mode, setMode] = useViewMode({ view })
+  // Only Hoje can create tasks: they go to the Inbox, due today.
+  const newTaskDefaults =
+    view === 'today' && inbox ? { listId: inbox.id, dueDate: today } : undefined
 
   // Próximos starts tomorrow; Hoje takes overdue and today.
   const inView = (task: Task): boolean => view === 'today' || (task.dueDate ?? '') > today
@@ -83,15 +87,14 @@ export function SmartTaskView({ view }: { view: SmartView }): React.JSX.Element 
             mode === 'list' ? 'max-w-2xl' : 'max-w-6xl'
           } ${mode === 'columns' ? 'min-h-0 flex-1' : ''}`}
         >
-          {view === 'today' && inbox && (
-            <QuickAdd defaults={{ listId: inbox.id, dueDate: today }} />
-          )}
+          {mode !== 'columns' && newTaskDefaults && <QuickAdd defaults={newTaskDefaults} />}
 
           {mode === 'columns' && (
             <TaskBoard
               tasks={tasks.filter(inView)}
               compare={compareByDate}
               rowOptions={rowOptions()}
+              newTaskDefaults={newTaskDefaults}
             />
           )}
 
@@ -125,6 +128,7 @@ export function SmartTaskView({ view }: { view: SmartView }): React.JSX.Element 
         </div>
       </div>
       <TaskEditorModal tasks={tasks} isLoaded={isSuccess} />
+      <TaskContextMenu tasks={tasks} />
       <ExportDialog
         source={{
           title: copy.title,

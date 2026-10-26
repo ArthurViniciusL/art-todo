@@ -140,6 +140,17 @@ describe('tasks repository', () => {
       expect(moved).toMatchObject({ status: 'done', completedAt: 9000, position: a.position })
     })
 
+    it('moves to another list, last or at an exact position', () => {
+      const a = tasks.create({ listId: inboxId, title: 'a' })
+      tasks.create({ listId: otherListId, title: 'x' })
+      const moved = tasks.move(a.id, { listId: otherListId })
+      expect(tasks.getByList(otherListId).map((t) => t.title)).toEqual(['x', 'a'])
+      tasks.move(a.id, { listId: inboxId, position: a.position })
+      expect(tasks.getById(a.id)).toMatchObject({ listId: inboxId, position: a.position })
+      expect(moved.listId).toBe(otherListId)
+      expect(() => tasks.move(a.id, { listId: 9999 })).toThrow()
+    })
+
     it('rejects neighbors from another list', () => {
       const a = tasks.create({ listId: inboxId, title: 'a' })
       const other = tasks.create({ listId: otherListId, title: 'x' })

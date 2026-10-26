@@ -97,3 +97,60 @@ test('deletes a task with Delete and restores it from the toast', async () => {
   await page.getByRole('button', { name: 'Desfazer' }).click()
   await expect(tasks().getByRole('row', { name: 'Tarefa temporária' })).toBeVisible()
 })
+
+test('right-click opens the task menu to edit or delete', async () => {
+  await addTask('Revisar contrato')
+  await tasks().getByRole('row', { name: 'Revisar contrato' }).click({ button: 'right' })
+  await page.getByRole('menuitem', { name: 'Editar' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Editar tarefa' })
+  await expect(dialog.getByRole('textbox', { name: 'Título' })).toHaveValue('Revisar contrato')
+  await dialog.getByRole('button', { name: 'Cancelar' }).click()
+
+  await addTask('Arquivar notas')
+  await tasks().getByRole('row', { name: 'Revisar contrato' }).click({ button: 'right' })
+  await page.getByRole('menuitem', { name: 'Excluir' }).click()
+  await expect(tasks().getByRole('row')).toHaveCount(1)
+  await expect(tasks().getByRole('row', { name: 'Arquivar notas' })).toBeFocused()
+})
+
+test('Shift+F10 opens the task menu from the keyboard', async () => {
+  await addTask('Enviar fatura')
+  await tasks().getByRole('row', { name: 'Enviar fatura' }).focus()
+  await page.keyboard.press('Shift+F10')
+  await expect(page.getByRole('menuitem', { name: 'Editar' })).toBeFocused()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('menu')).toHaveCount(0)
+  await expect(tasks().getByRole('row', { name: 'Enviar fatura' })).toBeFocused()
+})
+
+test('moves a task to another list and undoes it with Ctrl+Z', async () => {
+  await page.evaluate(() => window.api.invoke('lists:create', 'Trabalho'))
+  await page.reload()
+  await addTask('Preparar slides')
+  await tasks().getByRole('row', { name: 'Preparar slides' }).click({ button: 'right' })
+  await page.getByRole('menuitem', { name: 'Mover para lista' }).click()
+  await page.getByRole('menuitem', { name: 'Trabalho' }).click()
+  await expect(tasks().getByRole('row')).toHaveCount(0)
+  await expect(page.getByText('Movida para Trabalho')).toBeVisible()
+
+  await page
+    .getByRole('navigation', { name: 'Listas' })
+    .getByRole('button', { name: 'Trabalho', exact: true })
+    .click()
+  await expect(tasks().getByRole('row', { name: 'Preparar slides' })).toBeVisible()
+
+  await page.keyboard.press('Control+z')
+  await expect(tasks().getByRole('row')).toHaveCount(0)
+})
+
+test('moves a task to another list from the modal', async () => {
+  await page.evaluate(() => window.api.invoke('lists:create', 'Casa'))
+  await page.reload()
+  await addTask('Trocar lâmpada')
+  await tasks().getByRole('row', { name: 'Trocar lâmpada' }).dblclick()
+  const dialog = page.getByRole('dialog', { name: 'Editar tarefa' })
+  await dialog.getByRole('button', { name: /Lista/ }).click()
+  await page.getByRole('option', { name: 'Casa' }).click()
+  await dialog.getByRole('button', { name: 'Salvar' }).click()
+  await expect(tasks().getByRole('row')).toHaveCount(0)
+})
