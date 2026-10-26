@@ -10,7 +10,7 @@ The full product spec and roadmap is in `docs/plan.md`. Architecture decisions a
 - `pnpm lint` · `pnpm typecheck` · `pnpm test` (Vitest, run under Electron's Node for `better-sqlite3`) · `pnpm test:e2e` (build + Playwright Electron).
 - `pnpm db:generate --name <change>`: generate a migration after editing `src/main/db/schema.ts`.
 - `pnpm build:linux`: build `dist/art-todo_<version>_amd64.deb`.
-- `pnpm icon:render`: render `build/icon.svg` to `build/icon.png` and `resources/icon.png`.
+- `pnpm icon:render`: render `build/icon-source.png` (square, ≥ 512 px) to `build/icon.png`, `build/icons/` and `resources/icon.png`.
 - Runtime `dependencies` are only what the main process needs (`better-sqlite3`, `drizzle-orm`, `@electron-toolkit/utils`). Renderer packages are bundled by Vite, so they go in `devDependencies` and stay out of the `.deb`.
 - Use pnpm only. `pnpm-workspace.yaml` sets `nodeLinker: hoisted` (needed by Electron packaging) and `allowBuilds` for native modules. Add a native dependency there before installing it.
 

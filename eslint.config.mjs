@@ -36,7 +36,10 @@ export default defineConfig(
   {
     // Plain CommonJS scripts run directly by Electron.
     files: ['scripts/**/*.cjs'],
-    rules: { '@typescript-eslint/no-require-imports': 'off' }
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off'
+    }
   },
   eslintConfigPrettier
 )
