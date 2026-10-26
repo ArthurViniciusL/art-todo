@@ -83,9 +83,32 @@ type MissingChannels = Exclude<IpcChannel, (typeof IPC_CHANNELS)[number]>
 const channelsAreComplete: MissingChannels extends never ? true : MissingChannels = true
 void channelsAreComplete
 
+/** A task to open, or null for the Hoje view (several alerts at once). */
+export type ReminderTarget = { taskId: number; listId: number } | null
+
+/** Messages the main process sends to the renderer. */
+export interface IpcEvents {
+  /** A reminder notification was clicked. */
+  'reminders:open': (target: ReminderTarget) => void
+}
+
+export type IpcEvent = keyof IpcEvents
+
+/** Runtime list of events; the preload refuses anything else. */
+export const IPC_EVENTS = ['reminders:open'] as const satisfies readonly IpcEvent[]
+
+type MissingEvents = Exclude<IpcEvent, (typeof IPC_EVENTS)[number]>
+const eventsAreComplete: MissingEvents extends never ? true : MissingEvents = true
+void eventsAreComplete
+
 export interface IpcApi {
   invoke<C extends IpcChannel>(
     channel: C,
     ...args: Parameters<IpcContract[C]>
   ): Promise<ReturnType<IpcContract[C]>>
+  /** Subscribes to a main-process event. Returns the unsubscribe function. */
+  on<E extends IpcEvent>(
+    event: E,
+    listener: (...args: Parameters<IpcEvents[E]>) => void
+  ): () => void
 }

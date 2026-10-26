@@ -14,13 +14,22 @@ async function open(profile = newProfileDir()): Promise<void> {
   await expect(page.getByRole('heading', { level: 1, name: 'Entrada' })).toBeVisible()
 }
 
-const setWindowSize = (width: number, height: number): Promise<void> =>
-  app.evaluate(
-    ({ BrowserWindow }, [width, height]) => {
-      BrowserWindow.getAllWindows()[0].setSize(width, height)
-    },
-    [width, height]
-  )
+/**
+ * Resizes the window and waits for the page to see it. The window manager can drop a resize
+ * while getSize() already reports the new size, so ask again until the page width changes.
+ */
+async function setWindowSize(width: number, height: number): Promise<void> {
+  await expect
+    .poll(async () => {
+      await app.evaluate(
+        ({ BrowserWindow }, [width, height]) =>
+          BrowserWindow.getAllWindows()[0].setSize(width, height),
+        [width, height]
+      )
+      return page.evaluate(() => window.innerWidth)
+    })
+    .toBe(width)
+}
 
 const sidebar = (): ReturnType<Page['getByRole']> =>
   page.getByRole('complementary', { name: 'Barra lateral' })
@@ -82,11 +91,17 @@ test('the board scrolls sideways on a narrow window', async () => {
   await setWindowSize(375, 700)
   await page.keyboard.press('Control+Shift+3')
   await expect(page.getByRole('heading', { name: 'Feito' })).toBeAttached()
-  const overflows = await page.evaluate(() => {
-    const board = document.querySelector('section[aria-labelledby="column-todo"]')!.parentElement!
-    return board.scrollWidth > board.clientWidth
-  })
-  expect(overflows).toBe(true)
+  // The resize lands a moment later; poll until the layout has reflowed.
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const board = document.querySelector(
+          'section[aria-labelledby="column-todo"]'
+        )!.parentElement!
+        return board.scrollWidth > board.clientWidth
+      })
+    )
+    .toBe(true)
 })
 
 test('header controls stay clear of the native window buttons', async () => {

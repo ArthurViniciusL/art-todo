@@ -30,6 +30,8 @@ The renderer never touches Node or the database. Every call goes through one gen
 
 5. **Do not touch** `src/preload/index.ts`. It forwards any channel in `IPC_CHANNELS`.
 
+For a message from main to the renderer (no reply), add it to `IpcEvents` and `IPC_EVENTS` in `src/shared/ipc.ts`, send it with `webContents.send(event, payload)`, and subscribe in the renderer with `onEvent()` from `src/renderer/src/lib/api.ts` inside a `useEffect`.
+
 ## Check
 
 - `pnpm typecheck && pnpm test`

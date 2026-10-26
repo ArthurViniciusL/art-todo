@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, Menu } from 'electron'
+import { app, shell, BrowserWindow, Menu, Notification } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -7,6 +7,7 @@ import { createListsRepository } from './db/repositories/lists'
 import { createSettingsRepository, type SettingsRepository } from './db/repositories/settings'
 import { createTasksRepository } from './db/repositories/tasks'
 import { registerIpcHandlers } from './ipc'
+import { startReminders, type Reminder } from './reminders'
 import { applyTheme, currentTitlebarOverlay, storedTheme, watchNativeTheme } from './theme'
 import { loadWindowState, trackWindowState } from './window-state'
 
@@ -17,6 +18,31 @@ if (process.env['ART_TODO_USER_DATA']) {
 
 if (!app.requestSingleInstanceLock()) {
   app.quit()
+}
+
+// Electron drops a notification's click handler once the object is garbage collected.
+const shownNotifications = new Set<Notification>()
+
+function revealWindow(window: BrowserWindow): void {
+  if (window.isMinimized()) window.restore()
+  window.show()
+  window.focus()
+}
+
+/** System notification for a reminder; clicking it brings the window up on the task. */
+function showReminder(reminder: Reminder, getWindow: () => BrowserWindow): void {
+  const notification = new Notification({ title: reminder.title, body: reminder.body, icon })
+  shownNotifications.add(notification)
+  const forget = (): void => void shownNotifications.delete(notification)
+  notification.on('click', () => {
+    forget()
+    const window = getWindow()
+    revealWindow(window)
+    window.webContents.send('reminders:open', reminder.target)
+  })
+  notification.on('close', forget)
+  notification.on('failed', forget)
+  notification.show()
 }
 
 function createWindow(settings: SettingsRepository): BrowserWindow {
@@ -78,11 +104,8 @@ app.whenReady().then(() => {
     join(app.getAppPath(), 'resources/migrations')
   )
   const settings = createSettingsRepository(db)
-  registerIpcHandlers({
-    lists: createListsRepository(db),
-    tasks: createTasksRepository(db),
-    settings
-  })
+  const tasks = createTasksRepository(db)
+  registerIpcHandlers({ lists: createListsRepository(db), tasks, settings })
 
   // Set before the window exists so the first paint already has the right theme.
   applyTheme(storedTheme(settings))
@@ -90,10 +113,15 @@ app.whenReady().then(() => {
 
   let mainWindow = createWindow(settings)
 
-  app.on('second-instance', () => {
-    if (mainWindow.isMinimized()) mainWindow.restore()
-    mainWindow.focus()
-  })
+  // Start once the renderer can receive a notification click. Without notification support,
+  // alerts stay pending instead of being marked as fired.
+  if (Notification.isSupported()) {
+    mainWindow.webContents.once('did-finish-load', () =>
+      startReminders(tasks, (reminder) => showReminder(reminder, () => mainWindow))
+    )
+  }
+
+  app.on('second-instance', () => revealWindow(mainWindow))
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) mainWindow = createWindow(settings)

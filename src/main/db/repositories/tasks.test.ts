@@ -26,6 +26,7 @@ describe('tasks repository', () => {
       dueDate: null,
       dueTime: null,
       completedAt: null,
+      remindedAt: null,
       createdAt: 1000,
       updatedAt: 1000
     })
@@ -177,6 +178,34 @@ describe('tasks repository', () => {
       tasks.create({ listId: inboxId, title: '1000 feito' })
       expect(tasks.search('100%').map((t) => t.title)).toEqual(['100% feito'])
       expect(tasks.search('   ')).toEqual([])
+    })
+  })
+
+  describe('reminders', () => {
+    const at = (day: number, hour: number): number => new Date(2026, 9, day, hour).getTime()
+
+    it('lists open, pending tasks due up to a day and marks them reminded', () => {
+      const due = tasks.create(
+        { listId: inboxId, title: 'due', dueDate: '2026-10-27', dueTime: '14:00' },
+        at(27, 9)
+      )
+      tasks.create({ listId: inboxId, title: 'later', dueDate: '2026-10-28' }, at(27, 9))
+      tasks.create({ listId: inboxId, title: 'no date' }, at(27, 9))
+      tasks.create(
+        { listId: inboxId, title: 'done', dueDate: '2026-10-27', dueTime: '15:00', status: 'done' },
+        at(27, 9)
+      )
+      expect(tasks.getReminderCandidates('2026-10-27').map((t) => t.title)).toEqual(['due'])
+      tasks.markReminded([due.id], at(27, 14))
+      expect(tasks.getReminderCandidates('2026-10-27')).toEqual([])
+    })
+
+    it('never alerts for a time already past when the task is created or edited', () => {
+      const task = tasks.create({ listId: inboxId, title: 'x', dueDate: '2026-10-27' }, at(27, 10))
+      expect(task.remindedAt).toBe(at(27, 10))
+      const moved = tasks.update(task.id, { dueTime: '18:00' }, at(27, 11))
+      expect(moved.remindedAt).toBeNull()
+      expect(tasks.update(task.id, { dueDate: null }, at(27, 12)).remindedAt).toBeNull()
     })
   })
 })

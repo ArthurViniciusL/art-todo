@@ -14,6 +14,7 @@ The renderer must never touch Node or the database. It needs a safe, typed way t
 - `src/shared/ipc.ts` holds the contract: the `IpcContract` interface maps every channel to its argument and return types, and `IPC_CHANNELS` lists them at runtime. A compile-time check fails if the two drift apart.
 - The preload rejects any channel that is not in `IPC_CHANNELS`.
 - `src/main/ipc.ts` implements every channel. The `Handlers` type forces one handler per channel. Handlers receive `unknown` arguments and validate them with `src/shared/validate.ts` before calling a repository.
+- Main-to-renderer messages (added in phase 11 for reminder clicks) follow the same pattern: `IpcEvents` maps each event to its payload, `IPC_EVENTS` lists them, and the preload's `window.api.on(event, listener)` refuses anything else and passes only the payload. The renderer subscribes with `onEvent()` from `src/renderer/src/lib/api.ts`.
 - The renderer calls `invoke()` from `src/renderer/src/lib/api.ts` through TanStack Query hooks in `src/renderer/src/hooks/queries.ts`, and invalidates queries after mutations. Zustand holds UI state only (selection, open modal, view filters).
 
 ## Options Considered
