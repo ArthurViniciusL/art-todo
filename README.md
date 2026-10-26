@@ -41,7 +41,7 @@ The interface is in Brazilian Portuguese.
 Download `art-todo_<version>_amd64.deb` from the [releases](https://github.com/ArthurViniciusL/art-todo/releases), then:
 
 ```bash
-sudo apt install ./art-todo_1.0.1_amd64.deb
+sudo apt install ./art-todo_1.1.0_amd64.deb
 ```
 
 Data lives in `~/.config/art-todo/art-todo.db`.
