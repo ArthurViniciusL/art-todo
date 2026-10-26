@@ -88,3 +88,28 @@ test('the board scrolls sideways on a narrow window', async () => {
   })
   expect(overflows).toBe(true)
 })
+
+test('header controls stay clear of the native window buttons', async () => {
+  await open()
+  for (const [width, height] of [
+    [1100, 700],
+    [375, 700]
+  ]) {
+    await setWindowSize(width, height)
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const overlay = (
+            navigator as Navigator & {
+              windowControlsOverlay: { getTitlebarAreaRect: () => DOMRect }
+            }
+          ).windowControlsOverlay.getTitlebarAreaRect()
+          const switcher = document
+            .querySelector('[aria-label="Modo de visualização"]')!
+            .getBoundingClientRect()
+          return switcher.right <= overlay.right
+        })
+      )
+      .toBe(true)
+  }
+})

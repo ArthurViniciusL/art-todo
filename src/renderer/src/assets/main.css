@@ -102,9 +102,12 @@
   app-region: no-drag;
 }
 
-/* Keeps content clear of the native window controls drawn by titleBarOverlay. */
+/*
+ * Keeps content clear of the native window controls drawn by titleBarOverlay. A margin, not
+ * padding: padding utilities such as px-6 on the same element would override it.
+ */
 @utility titlebar-inset {
-  padding-right: calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw));
+  margin-right: calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw));
 }
 
 body {
