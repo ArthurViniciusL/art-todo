@@ -1,6 +1,6 @@
 {
   "name": "art-todo",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Local, minimal todo list app built with Electron",
   "main": "./out/main/index.js",
   "author": "Arthur Vinicius <arthur.vsl.contato@gmail.com>",
