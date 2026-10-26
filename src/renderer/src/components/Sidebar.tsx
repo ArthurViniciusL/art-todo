@@ -5,6 +5,7 @@ import type { List } from '../../../shared/domain'
 import { useCreateList, useLists, useRenameList } from '../hooks/queries'
 import { useUiStore } from '../stores/ui'
 import { SMART_VIEWS } from '../views'
+import { AccentPicker } from './AccentPicker'
 import { DeleteListDialog } from './DeleteListDialog'
 import { InlineNameInput } from './InlineNameInput'
 import { SidebarItem } from './SidebarItem'
@@ -146,7 +147,10 @@ export function Sidebar(): React.JSX.Element {
 
       <footer className="flex items-center justify-between border-t border-separator px-3 py-2.5">
         <span className="text-xs text-muted">Tema</span>
-        <ThemeSwitcher />
+        <div className="flex items-center gap-1">
+          <AccentPicker />
+          <ThemeSwitcher />
+        </div>
       </footer>
 
       <DeleteListDialog list={deleting} onClose={() => setDeleting(null)} />

@@ -68,3 +68,20 @@ test('dragging a card to another column changes its status', async () => {
   await expect(rows('Feito')).toHaveText([/Mover/])
   await expect(rows('A fazer')).toHaveCount(0)
 })
+
+test('reorders with the keyboard from the drag handle', async () => {
+  const warnings: string[] = []
+  page.on('console', (message) => {
+    if (message.type() === 'warning') warnings.push(message.text())
+  })
+  await seedInbox([{ title: 'Primeira' }, { title: 'Segunda' }, { title: 'Terceira' }])
+  await page.getByRole('button', { name: 'Arrastar Terceira' }).focus()
+  await page.keyboard.press('Enter')
+  // React Aria starts on the nearest drop position; one step up is "before Primeira".
+  await expect(page.getByRole('button', { name: 'Inserir entre Primeira e Segunda' })).toBeFocused()
+  await page.keyboard.press('ArrowUp')
+  await expect(page.getByRole('button', { name: 'Inserir antes de Primeira' })).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(rows('Tarefas')).toHaveText([/Terceira/, /Primeira/, /Segunda/])
+  expect(warnings.filter((text) => text.includes('slot="drag"'))).toEqual([])
+})

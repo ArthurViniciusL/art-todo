@@ -14,6 +14,7 @@ import { invoke } from '../lib/api'
 
 export const queryKeys = {
   theme: ['settings', 'theme'] as const,
+  accent: ['settings', 'accent'] as const,
   smartViewMode: (view: SmartView) => ['settings', 'viewMode', view] as const,
   lists: ['lists'] as const,
   tasks: ['tasks'] as const,
@@ -34,6 +35,18 @@ export function useSetThemePreference() {
   return useMutation({
     mutationFn: (preference: ThemePreference) => invoke('settings:setTheme', preference),
     onMutate: (preference) => client.setQueryData(queryKeys.theme, preference)
+  })
+}
+
+export function useAccent() {
+  return useQuery({ queryKey: queryKeys.accent, queryFn: () => invoke('settings:getAccent') })
+}
+
+export function useSetAccent() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (hex: string | null) => invoke('settings:setAccent', hex),
+    onMutate: (hex) => client.setQueryData(queryKeys.accent, hex)
   })
 }
 

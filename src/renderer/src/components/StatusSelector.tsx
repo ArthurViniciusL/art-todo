@@ -16,7 +16,7 @@ export function StatusSelector({
   onChange,
   showLabel = false
 }: StatusSelectorProps): React.JSX.Element {
-  const { label, icon: Icon, className } = STATUS_META[status]
+  const { label, icon: Icon, className, chipClassName } = STATUS_META[status]
 
   return (
     <Dropdown>
@@ -29,14 +29,14 @@ export function StatusSelector({
           data-status={status}
           className={
             showLabel
-              ? 'h-6 min-w-0 gap-1.5 rounded-full bg-default px-2 text-xs font-medium text-foreground'
+              ? `h-6 min-w-0 gap-1.5 rounded-full px-2 text-xs font-medium ${chipClassName}`
               : 'size-7 min-w-7'
           }
         >
           <Icon
-            className={`${showLabel ? 'size-3.5' : 'size-[18px]'} ${className} ${
-              status === 'done' ? 'animate-status-pop' : ''
-            }`}
+            className={`${showLabel ? 'size-3.5' : 'size-[18px]'} ${
+              showLabel && status !== 'done' ? '' : className
+            } ${status === 'done' ? 'animate-status-pop' : ''}`}
             aria-hidden
           />
           {showLabel && <span aria-hidden>{label}</span>}

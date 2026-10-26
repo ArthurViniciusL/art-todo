@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Art Todo provisional icon: yellow squircle with a dark check in a circle. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFD45C"/>
+      <stop offset="1" stop-color="#FFC21F"/>
+    </linearGradient>
+  </defs>
+  <rect x="64" y="64" width="896" height="896" rx="208" fill="url(#bg)"/>
+  <circle cx="512" cy="512" r="276" fill="none" stroke="#1A1A1A" stroke-width="64"/>
+  <path d="M392 520 L478 606 L644 432" fill="none" stroke="#1A1A1A" stroke-width="72" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

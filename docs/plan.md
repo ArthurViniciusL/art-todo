@@ -91,6 +91,10 @@ Construir um app desktop de todo list, local e offline, empacotado com Electron 
 
 ## Roadmap (1 branch/PR por fase)
 
+Status (2026-10-26): fases 0–7 entregues (PRs #1–#7). Fase 8 usa um ícone provisório gerado de `build/icon.svg`, a ser trocado pelo ícone final.
+
+Mudanças pedidas na fase 8: o acento padrão passa a ser o do HeroUI (`#0485F7`), com seletor de cor hex na sidebar; os status usam as cores do HeroUI (A fazer = danger, Fazendo = warning, Feito = success). Ver `docs/design-tokens.md`.
+
 0. `git init`, repo GitHub, scaffold (electron-vite + React + TS + HeroUI v3 + Tailwind v4, pnpm hoisted), CI, `CLAUDE.md` (`init`), ADRs.
 1. Design system: tokens #FFCA39, Open Sans local, tema claro/escuro/sistema, titlebar, layout base.
 2. Dados: Drizzle schema (com `status` e `due_time` desde já), migrations, IPC tipado. Depois, criar as 5 skills customizadas.

@@ -1,5 +1,6 @@
 import type { Task } from '../../../shared/domain'
 import { useTaskActions } from '../hooks/useTaskActions'
+import { DragHandle } from './DragHandle'
 import { DueLabel } from './DueLabel'
 import { PriorityMark } from './PriorityMark'
 import { StatusSelector } from './StatusSelector'
@@ -15,13 +16,21 @@ export interface TaskRowOptions {
 
 export interface TaskItemProps extends TaskRowOptions {
   task: Task
+  /** Show the drag handle (grids with drag and drop). */
+  isDraggable?: boolean
 }
 
-export function TaskRow({ task, listName, timeOnly }: TaskItemProps): React.JSX.Element {
+export function TaskRow({
+  task,
+  listName,
+  timeOnly,
+  isDraggable
+}: TaskItemProps): React.JSX.Element {
   const { setStatus } = useTaskActions()
 
   return (
-    <div className="flex min-h-10 items-center gap-2 px-1">
+    <div className="flex min-h-10 items-center gap-1.5 px-1">
+      {isDraggable && <DragHandle taskTitle={task.title} />}
       <StatusSelector
         status={task.status}
         taskTitle={task.title}

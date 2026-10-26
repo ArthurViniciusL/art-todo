@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron'
+import { isHexColor } from '../shared/color'
 import type { ViewMode } from '../shared/domain'
 import type { IpcChannel, IpcContract } from '../shared/ipc'
 import * as v from '../shared/validate'
@@ -29,6 +30,11 @@ export function registerIpcHandlers({ lists, tasks, settings }: Repositories): v
       settings.set(THEME_KEY, theme)
       applyTheme(theme)
     },
+    'settings:getAccent': () => {
+      const stored = settings.get<unknown>('accent', null)
+      return isHexColor(stored) ? stored : null
+    },
+    'settings:setAccent': (hex) => settings.set('accent', v.nullableHexColor(hex)),
     'settings:getSmartViewMode': (view) => {
       const stored = settings.get<unknown>(`viewMode:${v.smartView(view)}`, 'list')
       try {

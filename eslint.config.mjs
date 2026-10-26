@@ -33,5 +33,10 @@ export default defineConfig(
     files: ['src/main/db/repositories/*.ts', 'src/renderer/src/hooks/queries.ts'],
     rules: { '@typescript-eslint/explicit-function-return-type': 'off' }
   },
+  {
+    // Plain CommonJS scripts run directly by Electron.
+    files: ['scripts/**/*.cjs'],
+    rules: { '@typescript-eslint/no-require-imports': 'off' }
+  },
   eslintConfigPrettier
 )
