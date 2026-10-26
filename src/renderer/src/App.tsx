@@ -1,6 +1,6 @@
 import { Toast } from '@heroui/react'
 import { CommandPalette } from './components/CommandPalette'
-import { Sidebar } from './components/Sidebar'
+import { AppSidebar } from './components/AppSidebar'
 import { SmartTaskView } from './components/SmartTaskView'
 import { TaskListView } from './components/TaskListView'
 import { useLists } from './hooks/queries'
@@ -21,7 +21,7 @@ function App(): React.JSX.Element {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
-      <Sidebar />
+      <AppSidebar />
       <main className="flex min-w-0 flex-1 flex-col">
         {list && <TaskListView key={list.id} list={list} />}
         {selection?.kind === 'view' && <SmartTaskView key={selection.view} view={selection.view} />}

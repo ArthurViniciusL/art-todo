@@ -3,6 +3,7 @@ import { Copy, FileDown } from 'lucide-react'
 import { useState } from 'react'
 import { TASK_STATUSES, type Task, type ViewMode } from '../../../shared/domain'
 import { toMarkdown, type MarkdownSection } from '../../../shared/markdown'
+import { useCompactLayout } from '../hooks/useCompactLayout'
 import { invoke } from '../lib/api'
 import { useUiStore } from '../stores/ui'
 import { STATUS_META } from '../task-status'
@@ -149,8 +150,10 @@ export function ExportDialog({ source }: { source: ExportSource }): React.JSX.El
   )
 }
 
-export function ExportButton(): React.JSX.Element {
+export function ExportButton(): React.JSX.Element | null {
   const setOpen = useUiStore((state) => state.setExportOpen)
+  // No room in a phone-sized header; Ctrl+E and the palette still open it.
+  if (useCompactLayout()) return null
   return (
     <Button
       size="sm"

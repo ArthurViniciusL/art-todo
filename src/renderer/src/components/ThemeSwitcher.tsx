@@ -9,7 +9,11 @@ const OPTIONS: { id: ThemePreference; label: string; icon: LucideIcon }[] = [
   { id: 'dark', label: 'Escuro', icon: Moon }
 ]
 
-export function ThemeSwitcher(): React.JSX.Element {
+export function ThemeSwitcher({
+  orientation = 'horizontal'
+}: {
+  orientation?: 'horizontal' | 'vertical'
+}): React.JSX.Element {
   const { data: theme = 'system' } = useThemePreference()
   const { mutate: setTheme } = useSetThemePreference()
 
@@ -17,6 +21,7 @@ export function ThemeSwitcher(): React.JSX.Element {
     <ToggleButtonGroup
       aria-label="Tema"
       size="sm"
+      orientation={orientation}
       selectionMode="single"
       disallowEmptySelection
       selectedKeys={[theme]}

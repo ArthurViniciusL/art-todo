@@ -32,7 +32,8 @@ export function TaskBoard({
       .sort(status === 'done' ? newestDoneFirst : compare)
 
   return (
-    <div className="grid min-h-0 flex-1 grid-cols-3 gap-4">
+    // Columns keep a readable width and scroll sideways on narrow windows.
+    <div className="grid min-h-0 flex-1 snap-x auto-cols-[minmax(15rem,1fr)] grid-flow-col gap-4 overflow-x-auto">
       {TASK_STATUSES.map((status) => {
         const { label, icon: Icon, className } = STATUS_META[status]
         const items = column(status)
@@ -41,7 +42,7 @@ export function TaskBoard({
           <section
             key={status}
             aria-labelledby={`column-${status}`}
-            className="flex min-h-0 flex-col rounded-xl bg-sidebar p-2"
+            className="flex min-h-0 snap-start flex-col rounded-xl bg-sidebar p-2"
           >
             <header className="flex h-8 items-center gap-2 px-1.5">
               <Icon className={`size-4 ${className}`} aria-hidden />

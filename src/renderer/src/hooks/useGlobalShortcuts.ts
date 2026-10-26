@@ -1,6 +1,7 @@
 import { toast } from '@heroui/react'
 import { useEffect } from 'react'
 import { useUiStore } from '../stores/ui'
+import { isCompactLayout } from './useCompactLayout'
 import { useUndoStore } from '../stores/undo'
 import { useNavTargets, useStartNewTask } from './useNavigation'
 
@@ -14,7 +15,10 @@ const isDialogOpen = (): boolean =>
     (element) => !element.closest('[role=region]')
   )
 
-/** App-wide keys: Ctrl+K palette, Ctrl+E export, Ctrl+Z undo, N new task, Ctrl+1..9 navigation. */
+/**
+ * App-wide keys: Ctrl+K palette, Ctrl+E export, Ctrl+B sidebar, Ctrl+Z undo, N new task,
+ * Ctrl+1..9 navigation.
+ */
 export function useGlobalShortcuts(): void {
   const targets = useNavTargets()
   const select = useUiStore((state) => state.select)
@@ -37,6 +41,13 @@ export function useGlobalShortcuts(): void {
       if (ctrl && !event.shiftKey && event.key.toLowerCase() === 'e') {
         event.preventDefault()
         if (!isDialogOpen()) setExportOpen(true)
+        return
+      }
+      if (ctrl && !event.shiftKey && event.key.toLowerCase() === 'b') {
+        event.preventDefault()
+        const state = useUiStore.getState()
+        if (isCompactLayout()) state.setDrawerOpen(!state.isDrawerOpen)
+        else state.setSidebarCollapsed(!state.isSidebarCollapsed)
         return
       }
       if (isTyping(event.target) || isDialogOpen()) return

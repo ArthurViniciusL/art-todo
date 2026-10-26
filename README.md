@@ -15,7 +15,8 @@ The interface is in Brazilian Portuguese.
 - **Command palette** to search tasks (title and notes) and run any action.
 - **Undo** for create, status change, move and delete.
 - **Markdown export** (GFM checklists) of the current list or view, to a `.md` file or the clipboard.
-- **Light, dark or system theme.**
+- **Light, dark or system theme**, with a custom accent color.
+- **Collapsible sidebar** and a layout that works down to a phone-sized window (sidebar as a drawer below 640 px).
 
 ## Keyboard shortcuts
 

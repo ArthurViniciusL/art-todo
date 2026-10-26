@@ -1,5 +1,29 @@
-import { Circle, CircleCheck, CircleDot, type LucideIcon } from 'lucide-react'
+import { Circle, CircleDot, createLucideIcon, type LucideIcon } from 'lucide-react'
 import type { TaskStatus } from '../../shared/domain'
+
+/**
+ * Lucide's CircleCheck strokes the circle too, which drew a dark ring around the fill. This one
+ * is a solid success disc with only the check mark stroked.
+ */
+const DoneIcon = createLucideIcon({
+  name: 'art-todo-done',
+  size: 24,
+  node: [
+    [
+      'circle',
+      { cx: '12', cy: '12', r: '11', fill: 'var(--status-done-fill)', stroke: 'none', key: 'disc' }
+    ],
+    [
+      'path',
+      {
+        d: 'm16.5 9-6 6L7.5 12',
+        stroke: 'var(--status-done-foreground)',
+        strokeWidth: '2.5',
+        key: 'check'
+      }
+    ]
+  ]
+})
 
 /**
  * Status colors follow HeroUI: A fazer = danger, Fazendo = warning, Feito = success.
@@ -23,8 +47,8 @@ export const STATUS_META: Record<
   },
   done: {
     label: 'Feito',
-    icon: CircleCheck,
-    className: 'fill-status-done-fill text-status-done-foreground',
+    icon: DoneIcon,
+    className: '',
     chipClassName: 'bg-status-done/12 text-status-done'
   }
 }
