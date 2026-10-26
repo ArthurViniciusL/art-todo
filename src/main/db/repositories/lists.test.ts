@@ -58,4 +58,45 @@ describe('lists repository', () => {
     lists.remove(list.id, 'move-to-inbox')
     expect(tasks.getById(task.id).listId).toBe(lists.getInbox().id)
   })
+
+  describe('move', () => {
+    const names = (): string[] =>
+      lists
+        .getAll()
+        .filter((list) => !list.isInbox)
+        .map((list) => list.name)
+
+    it('places a list between two others, at the top and at the bottom', () => {
+      const a = lists.create('A')
+      const b = lists.create('B')
+      const c = lists.create('C')
+      lists.move(c.id, { prevId: a.id, nextId: b.id })
+      expect(names()).toEqual(['A', 'C', 'B'])
+      lists.move(b.id, { prevId: null, nextId: a.id })
+      expect(names()).toEqual(['B', 'A', 'C'])
+      lists.move(b.id, { prevId: c.id, nextId: null })
+      expect(names()).toEqual(['A', 'C', 'B'])
+    })
+
+    it('renumbers when positions get too close', () => {
+      lists.create('A')
+      const b = lists.create('B')
+      const c = lists.create('C')
+      for (let i = 0; i < 60; i++) {
+        const [first, second] = lists.getAll().filter((list) => !list.isInbox)
+        const mover = [b, c].find((list) => list.id !== second.id && list.id !== first.id)!
+        lists.move(mover.id, { prevId: first.id, nextId: second.id })
+      }
+      const positions = lists.getAll().map((list) => list.position)
+      expect(new Set(positions).size).toBe(positions.length)
+      expect(names()[0]).toBe('A')
+    })
+
+    it('never moves the Inbox or uses it as a neighbor', () => {
+      const a = lists.create('A')
+      const inbox = lists.getInbox()
+      expect(() => lists.move(inbox.id, { prevId: a.id, nextId: null })).toThrow()
+      expect(() => lists.move(a.id, { prevId: inbox.id, nextId: null })).toThrow()
+    })
+  })
 })

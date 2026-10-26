@@ -1,9 +1,12 @@
 import {
+  LIST_SORTS,
   PRIORITIES,
   SMART_VIEW_IDS,
   TASK_STATUSES,
   VIEW_MODES,
   type ListDeleteMode,
+  type ListMove,
+  type ListSort,
   type NewTask,
   type Priority,
   type SmartView,
@@ -60,6 +63,16 @@ export function viewMode(value: unknown): ViewMode {
 
 export function smartView(value: unknown): SmartView {
   return SMART_VIEW_IDS.includes(value as SmartView) ? (value as SmartView) : fail('view', value)
+}
+
+export function listSort(value: unknown): ListSort {
+  return LIST_SORTS.includes(value as ListSort) ? (value as ListSort) : fail('list sort', value)
+}
+
+export function listMove(value: unknown): ListMove {
+  if (!isObject(value)) fail('list move', value)
+  const neighbor = (v: unknown): number | null => (v === null || v === undefined ? null : id(v))
+  return { prevId: neighbor(value.prevId), nextId: neighbor(value.nextId) }
 }
 
 export function listDeleteMode(value: unknown): ListDeleteMode {

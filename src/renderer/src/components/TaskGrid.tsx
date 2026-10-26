@@ -12,6 +12,7 @@ import { toIsoDate } from '../../../shared/dates'
 import type { Task, TaskMove, TaskStatus } from '../../../shared/domain'
 import { useUpdateTask } from '../hooks/queries'
 import { useTaskActions } from '../hooks/useTaskActions'
+import { neighborIds } from '../lib/reorder'
 import { focusSibling } from '../lib/task-focus'
 import { useUiStore } from '../stores/ui'
 import { TaskCard } from './TaskCard'
@@ -44,13 +45,13 @@ const TASK_DRAG_TYPE = 'application/x-art-todo-task'
 
 /** The tasks directly above and below a drop target, ignoring the dragged task itself. */
 function neighbors(order: Task[], movedId: number, target: DropTarget): TaskMove {
-  const rest = order.filter((task) => task.id !== movedId)
-  if (target.type === 'root') return { prevId: rest.at(-1)?.id ?? null, nextId: null }
-  const index = rest.findIndex((task) => task.id === target.key)
-  if (index === -1) return { prevId: rest.at(-1)?.id ?? null, nextId: null }
-  return target.dropPosition === 'before'
-    ? { prevId: rest[index - 1]?.id ?? null, nextId: rest[index].id }
-    : { prevId: rest[index].id, nextId: rest[index + 1]?.id ?? null }
+  if (target.type === 'root') return neighborIds(order, movedId, null, 'after')
+  return neighborIds(
+    order,
+    movedId,
+    Number(target.key),
+    target.dropPosition === 'before' ? 'before' : 'after'
+  )
 }
 
 /**

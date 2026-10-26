@@ -8,6 +8,10 @@ export const PRIORITIES: readonly Priority[] = [0, 1, 2, 3, 4]
 export type ViewMode = 'list' | 'cards' | 'columns'
 export const VIEW_MODES: readonly ViewMode[] = ['list', 'cards', 'columns']
 
+/** Sidebar order of user lists: by position (drag to reorder) or by name. */
+export type ListSort = 'manual' | 'alpha'
+export const LIST_SORTS: readonly ListSort[] = ['manual', 'alpha']
+
 /** Views that collect tasks from every list by due date. */
 export type SmartView = 'today' | 'upcoming'
 export const SMART_VIEW_IDS: readonly SmartView[] = ['today', 'upcoming']
@@ -64,6 +68,12 @@ export interface TaskMove {
   status?: TaskStatus
   /** Target list. Neighbors refer to that list; without them or a position, the task goes last. */
   listId?: number
+}
+
+/** Reorder target for a list: the user lists directly above and below it (null at either end). */
+export interface ListMove {
+  prevId: number | null
+  nextId: number | null
 }
 
 /** What happens to the tasks of a deleted list. */

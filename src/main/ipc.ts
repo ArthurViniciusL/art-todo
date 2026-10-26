@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron'
 import { isHexColor } from '../shared/color'
-import type { ViewMode } from '../shared/domain'
+import type { ListSort, ViewMode } from '../shared/domain'
 import type { IpcChannel, IpcContract } from '../shared/ipc'
 import * as v from '../shared/validate'
 import type { ListsRepository } from './db/repositories/lists'
@@ -45,11 +45,20 @@ export function registerIpcHandlers({ lists, tasks, settings }: Repositories): v
     },
     'settings:setSmartViewMode': (view, mode) =>
       settings.set(`viewMode:${v.smartView(view)}`, v.viewMode(mode)),
+    'settings:getListSort': () => {
+      try {
+        return v.listSort(settings.get<unknown>('listSort', 'manual'))
+      } catch {
+        return 'manual' satisfies ListSort
+      }
+    },
+    'settings:setListSort': (sort) => settings.set('listSort', v.listSort(sort)),
 
     'lists:getAll': () => lists.getAll(),
     'lists:create': (name) => lists.create(v.optionalText(name, 'name')),
     'lists:rename': (id, name) => lists.rename(v.id(id), v.text(name, 'name')),
     'lists:setViewMode': (id, mode) => lists.setViewMode(v.id(id), v.viewMode(mode)),
+    'lists:move': (id, target) => lists.move(v.id(id), v.listMove(target)),
     'lists:remove': (id, mode) => lists.remove(v.id(id), v.listDeleteMode(mode)),
 
     'tasks:getByList': (listId) => tasks.getByList(v.id(listId)),

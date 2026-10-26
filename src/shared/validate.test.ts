@@ -23,6 +23,13 @@ describe('validate', () => {
     expect(() => v.taskPatch({ priority: 5 })).toThrow()
   })
 
+  it('validates list sort and list moves', () => {
+    expect(v.listSort('alpha')).toBe('alpha')
+    expect(() => v.listSort('date')).toThrow()
+    expect(v.listMove({ prevId: 3 })).toEqual({ prevId: 3, nextId: null })
+    expect(() => v.listMove({ prevId: -1, nextId: null })).toThrow()
+  })
+
   it('accepts a target list in a move', () => {
     expect(v.taskMove({ listId: 2, position: 1.5 })).toEqual({ listId: 2, position: 1.5 })
     expect(() => v.taskMove({ listId: 0 })).toThrow()
