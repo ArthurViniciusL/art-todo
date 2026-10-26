@@ -38,6 +38,8 @@ export interface Task {
   dueTime: string | null
   position: number
   completedAt: number | null
+  /** When the due-date alert fired (or was skipped as already past); null while pending. */
+  remindedAt: number | null
   createdAt: number
   updatedAt: number
 }

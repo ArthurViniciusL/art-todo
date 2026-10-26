@@ -158,6 +158,7 @@ export function task(value: unknown): Task {
     position:
       typeof value.position === 'number' ? value.position : fail('position', value.position),
     completedAt: value.completedAt === null ? null : timestamp(value.completedAt),
+    remindedAt: value.remindedAt === null ? null : timestamp(value.remindedAt),
     createdAt: timestamp(value.createdAt),
     updatedAt: timestamp(value.updatedAt)
   }

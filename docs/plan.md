@@ -20,7 +20,7 @@ Construir um app desktop de todo list, local e offline, empacotado com Electron 
 - `lists`: id, name, position, view_mode (`list`|`cards`|`columns`), is_inbox, created_at.
   - A **Entrada** é fixa: não pode ser apagada nem renomeada.
   - Uma lista criada sem nome recebe `dd/mm/yy - hh:mm:ss`. O nome é gravado na criação e pode ser editado depois.
-- `tasks`: id, list_id, title, notes, status (`todo`|`doing`|`done`), priority (0–4: nenhuma, baixa, média, alta, crítico), due_date, due_time (opcional), position (uma única ordem por lista), completed_at, created_at, updated_at.
+- `tasks`: id, list_id, title, notes, status (`todo`|`doing`|`done`), priority (0–4: nenhuma, baixa, média, alta, crítico), due_date, due_time (opcional), position (uma única ordem por lista), completed_at, reminded_at (quando o alerta disparou), created_at, updated_at.
 - `settings`: tema (`system`|`light`|`dark`), estado da janela, ordem das listas (`manual`|`alpha`).
 
 ## Funcionalidades MVP (v1)
@@ -51,6 +51,7 @@ Construir um app desktop de todo list, local e offline, empacotado com Electron 
 14. Menu de contexto da tarefa (clique direito, `Shift+F10` ou tecla de menu): Editar, Mover para lista, Excluir. O modal também troca a lista da tarefa.
 15. Em Colunas, o campo "Nova tarefa" fica no topo da coluna A fazer.
 16. Ordem das listas na sidebar: Manual (arrastar, `Alt+↑/↓` ou "Mover para cima/baixo" no menu da lista) ou Alfabética. A escolha fica salva e `Ctrl+1..9` segue a ordem mostrada.
+17. Alertas: notificação do sistema na hora da tarefa, ou às 06:00 quando ela só tem data. Funciona só com o app aberto. Vários alertas ao mesmo tempo (ao abrir o app ou às 06:00) viram um resumo. Datas já passadas ao criar ou editar não disparam alerta. Clicar no alerta abre a tarefa, ou a visão Hoje no caso do resumo.
 
 **v2 (fora do escopo agora):** tags, subtarefas, recorrência, backup/import JSON, tray, pastas de listas, quick-add global.
 

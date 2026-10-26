@@ -132,6 +132,8 @@ test('reorders lists by dragging', async () => {
   await page.mouse.down()
   await page.mouse.move(from.x + 25, from.y + from.height / 2 - 5, { steps: 5 })
   await page.mouse.move(to.x + 20, to.y + 4, { steps: 15 })
+  // Release only once React Aria shows the drop target, or the drop can be lost.
+  await expect(listsNav().locator('[data-drop-indicator]')).toBeVisible()
   await page.mouse.up()
   await expect.poll(listOrder).toEqual(['Três', 'Um', 'Dois'])
 })

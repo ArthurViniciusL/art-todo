@@ -68,6 +68,7 @@ export function SortableListItem({
       {isDropTarget && (
         <div
           aria-hidden
+          data-drop-indicator
           className={`pointer-events-none absolute inset-x-1 h-0.5 rounded-full bg-accent-text ${
             side === 'before' ? '-top-px' : '-bottom-px'
           }`}

@@ -1,7 +1,22 @@
-import { and, asc, desc, eq, gte, isNotNull, lte, max, ne, or, sql } from 'drizzle-orm'
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNotNull,
+  isNull,
+  lte,
+  max,
+  ne,
+  or,
+  sql
+} from 'drizzle-orm'
 import type { NewTask, Task, TaskMove, TaskPatch } from '../../../shared/domain'
 import type { Db } from '../client'
 import { positionBetween } from '../../../shared/ordering'
+import { initialRemindedAt } from '../../../shared/reminders'
 import { lists, tasks } from '../schema'
 
 export function createTasksRepository(db: Db) {
@@ -87,15 +102,18 @@ export function createTasksRepository(db: Db) {
       const title = input.title.trim()
       if (!title) throw new Error('Task title cannot be empty')
       const status = input.status ?? 'todo'
+      const dueDate = input.dueDate ?? null
+      const dueTime = dueDate ? (input.dueTime ?? null) : null
       return db
         .insert(tasks)
         .values({
           ...input,
           title,
           status,
-          dueTime: input.dueDate ? (input.dueTime ?? null) : null,
+          dueTime,
           position: nextPosition(input.listId),
           completedAt: status === 'done' ? now : null,
+          remindedAt: initialRemindedAt({ dueDate, dueTime }, now),
           createdAt: now,
           updatedAt: now
         })
@@ -114,6 +132,9 @@ export function createTasksRepository(db: Db) {
         Object.assign(next, { completedAt: patch.status === 'done' ? now : null })
       }
       if (patch.dueDate === null) next.dueTime = null
+      if (next.dueDate !== undefined || next.dueTime !== undefined) {
+        Object.assign(next, { remindedAt: initialRemindedAt({ ...current, ...next }, now) })
+      }
       if (patch.listId !== undefined && patch.listId !== current.listId) {
         Object.assign(next, { position: nextPosition(patch.listId) })
       }
@@ -151,6 +172,28 @@ export function createTasksRepository(db: Db) {
           .returning()
           .get()
       })
+    },
+
+    /** Open tasks due up to `until` whose alert has not fired yet. */
+    getReminderCandidates(until: string): Task[] {
+      return db
+        .select()
+        .from(tasks)
+        .where(
+          and(
+            isNotNull(tasks.dueDate),
+            lte(tasks.dueDate, until),
+            ne(tasks.status, 'done'),
+            isNull(tasks.remindedAt)
+          )
+        )
+        .orderBy(asc(tasks.dueDate), asc(tasks.dueTime))
+        .all()
+    },
+
+    markReminded(ids: number[], now = Date.now()): void {
+      if (ids.length === 0) return
+      db.update(tasks).set({ remindedAt: now }).where(inArray(tasks.id, ids)).run()
     },
 
     /** Case-insensitive match on title or notes, most recently updated first. */

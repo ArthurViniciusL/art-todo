@@ -32,6 +32,8 @@ export const tasks = sqliteTable(
     dueTime: text('due_time'),
     position: real('position').notNull(),
     completedAt: integer('completed_at'),
+    /** When the due-date alert fired; null while it is still pending. */
+    remindedAt: integer('reminded_at'),
     createdAt: integer('created_at').notNull().default(now),
     updatedAt: integer('updated_at').notNull().default(now)
   },

@@ -35,7 +35,7 @@ import {
 } from '../hooks/queries'
 import { isCompactLayout } from '../hooks/useCompactLayout'
 import { useNavTargets, useStartNewTask } from '../hooks/useNavigation'
-import { useUiStore } from '../stores/ui'
+import { selectionForList, useUiStore } from '../stores/ui'
 import { useUndoStore } from '../stores/undo'
 import { STATUS_META } from '../task-status'
 import { VIEW_MODE_META } from '../view-modes'
@@ -270,8 +270,7 @@ function PaletteContent({
                 icon={STATUS_META[task.status].icon}
                 onAction={() =>
                   run(() => {
-                    const list = lists.find((item) => item.id === task.listId)
-                    select(list?.isInbox ? null : { kind: 'list', listId: task.listId })
+                    select(selectionForList(lists, task.listId))
                     openTask(task.id)
                   })
                 }

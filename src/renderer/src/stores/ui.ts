@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { SmartView } from '../../../shared/domain'
+import type { List, SmartView } from '../../../shared/domain'
 
 export type { SmartView }
 
@@ -13,6 +13,11 @@ export interface TaskContextMenuState {
 
 /** What the content area shows. `null` means the Inbox. */
 export type Selection = { kind: 'list'; listId: number } | { kind: 'view'; view: SmartView } | null
+
+/** Selection that shows a list (the Inbox is `null`). */
+export function selectionForList(lists: readonly List[], listId: number): Selection {
+  return lists.find((list) => list.id === listId)?.isInbox ? null : { kind: 'list', listId }
+}
 
 interface UiState {
   selection: Selection

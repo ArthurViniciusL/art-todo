@@ -5,12 +5,14 @@ import { SmartTaskView } from './components/SmartTaskView'
 import { TaskListView } from './components/TaskListView'
 import { useLists } from './hooks/queries'
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts'
+import { useReminderOpen } from './hooks/useReminderOpen'
 import { useTheme } from './hooks/useTheme'
 import { useUiStore } from './stores/ui'
 
 function App(): React.JSX.Element {
   useTheme()
   useGlobalShortcuts()
+  useReminderOpen()
   const selection = useUiStore((state) => state.selection)
   const { data: lists = [] } = useLists()
 

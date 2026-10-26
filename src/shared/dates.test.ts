@@ -22,6 +22,7 @@ function task(overrides: Partial<Task>): Task {
     dueTime: null,
     position: nextId,
     completedAt: null,
+    remindedAt: null,
     createdAt: 0,
     updatedAt: 0,
     ...overrides
