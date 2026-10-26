@@ -1,6 +1,7 @@
 import { Kbd, Modal } from '@heroui/react'
 import {
   Columns3,
+  FileDown,
   LayoutGrid,
   List as ListIcon,
   Monitor,
@@ -144,6 +145,7 @@ function PaletteContent({
   const select = useUiStore((state) => state.select)
   const openTask = useUiStore((state) => state.openTask)
   const setCreatingList = useUiStore((state) => state.setCreatingList)
+  const setExportOpen = useUiStore((state) => state.setExportOpen)
   const undoLast = useUndoStore((state) => state.undoLast)
   const startNewTask = useStartNewTask()
   const { mutate: setTheme } = useSetThemePreference()
@@ -166,7 +168,14 @@ function PaletteContent({
       commands: [
         { id: 'new-task', label: 'Nova tarefa', icon: Plus, shortcut: 'N', run: startNewTask },
         { id: 'new-list', label: 'Nova lista', icon: Plus, run: () => setCreatingList(true) },
-        { id: 'undo', label: 'Desfazer', icon: Undo2, shortcut: 'Ctrl+Z', run: () => undoLast() }
+        { id: 'undo', label: 'Desfazer', icon: Undo2, shortcut: 'Ctrl+Z', run: () => undoLast() },
+        {
+          id: 'export',
+          label: 'Exportar Markdown',
+          icon: FileDown,
+          shortcut: 'Ctrl+E',
+          run: () => setExportOpen(true)
+        }
       ]
     },
     {

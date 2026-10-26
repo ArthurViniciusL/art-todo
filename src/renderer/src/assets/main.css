@@ -32,6 +32,8 @@
 
     /* Accent as text or thin strokes: #FFCA39 fails contrast on light surfaces. */
     --accent-text: #8a6500;
+    /* HeroUI tints soft accent text from #FFCA39, too light on light surfaces. */
+    --accent-soft-foreground: var(--accent-text);
     --focus: var(--accent-text);
     --link: var(--accent-text);
     --priority-high: #b42318;
