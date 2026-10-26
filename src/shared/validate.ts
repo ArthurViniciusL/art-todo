@@ -13,6 +13,7 @@ import {
   type TaskStatus,
   type ViewMode
 } from './domain'
+import { isHexColor } from './color'
 import { isThemePreference, type ThemePreference } from './theme'
 
 /** Guards for values that cross the IPC boundary. Each throws on invalid input. */
@@ -45,6 +46,12 @@ export function optionalText(value: unknown, what = 'text'): string | undefined 
 
 export function theme(value: unknown): ThemePreference {
   return isThemePreference(value) ? value : fail('theme', value)
+}
+
+export function nullableHexColor(value: unknown): string | null {
+  return value === null || isHexColor(value)
+    ? ((value as string | null)?.toLowerCase() ?? null)
+    : fail('color', value)
 }
 
 export function viewMode(value: unknown): ViewMode {

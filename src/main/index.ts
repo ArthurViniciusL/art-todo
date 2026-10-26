@@ -25,8 +25,9 @@ function createWindow(settings: SettingsRepository): BrowserWindow {
     width: 1100,
     height: 720,
     ...state.bounds,
-    minWidth: 720,
-    minHeight: 480,
+    // Down to a phone-sized window; the layout switches to a drawer below 640 px.
+    minWidth: 360,
+    minHeight: 520,
     title: 'Art Todo',
     show: false,
     autoHideMenuBar: true,

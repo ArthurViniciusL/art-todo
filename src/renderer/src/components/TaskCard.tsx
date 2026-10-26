@@ -1,4 +1,5 @@
 import { useTaskActions } from '../hooks/useTaskActions'
+import { DragHandle } from './DragHandle'
 import { DueLabel } from './DueLabel'
 import { PriorityMark } from './PriorityMark'
 import { StatusSelector } from './StatusSelector'
@@ -6,7 +7,12 @@ import type { TaskItemProps } from './TaskRow'
 import { TaskTitle } from './TaskTitle'
 import { UndoDoneButton } from './UndoDoneButton'
 
-export function TaskCard({ task, listName, timeOnly }: TaskItemProps): React.JSX.Element {
+export function TaskCard({
+  task,
+  listName,
+  timeOnly,
+  isDraggable
+}: TaskItemProps): React.JSX.Element {
   const { setStatus } = useTaskActions()
   const hasFooter = Boolean(task.dueDate || listName)
 
@@ -19,7 +25,10 @@ export function TaskCard({ task, listName, timeOnly }: TaskItemProps): React.JSX
           onChange={(status) => setStatus(task, status)}
           showLabel
         />
-        <PriorityMark priority={task.priority} />
+        <div className="flex items-center gap-1">
+          <PriorityMark priority={task.priority} />
+          {isDraggable && <DragHandle taskTitle={task.title} />}
+        </div>
       </div>
       <TaskTitle task={task} className="line-clamp-3 break-words font-medium" />
       {task.notes && <p className="line-clamp-2 text-xs text-muted">{task.notes}</p>}

@@ -77,7 +77,7 @@ export function SmartTaskView({ view }: { view: SmartView }): React.JSX.Element 
           </>
         }
       />
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pb-10">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 pb-10 sm:px-6">
         <div
           className={`mx-auto flex w-full flex-col gap-1 ${
             mode === 'list' ? 'max-w-2xl' : 'max-w-6xl'

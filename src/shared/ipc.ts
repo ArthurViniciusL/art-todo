@@ -17,6 +17,9 @@ import type { ThemePreference } from './theme'
 export interface IpcContract {
   'settings:getTheme': () => ThemePreference
   'settings:setTheme': (preference: ThemePreference) => void
+  /** Accent color as `#rrggbb`; null means the HeroUI default. */
+  'settings:getAccent': () => string | null
+  'settings:setAccent': (hex: string | null) => void
   'settings:getSmartViewMode': (view: SmartView) => ViewMode
   'settings:setSmartViewMode': (view: SmartView, viewMode: ViewMode) => void
 
@@ -46,6 +49,8 @@ export type IpcChannel = keyof IpcContract
 export const IPC_CHANNELS = [
   'settings:getTheme',
   'settings:setTheme',
+  'settings:getAccent',
+  'settings:setAccent',
   'settings:getSmartViewMode',
   'settings:setSmartViewMode',
   'lists:getAll',

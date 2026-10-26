@@ -6,6 +6,7 @@ import {
   List as ListIcon,
   Monitor,
   Moon,
+  PanelLeft,
   Plus,
   Search,
   Sun,
@@ -32,6 +33,7 @@ import {
   useSetSmartViewMode,
   useSetThemePreference
 } from '../hooks/queries'
+import { isCompactLayout } from '../hooks/useCompactLayout'
 import { useNavTargets, useStartNewTask } from '../hooks/useNavigation'
 import { useUiStore } from '../stores/ui'
 import { useUndoStore } from '../stores/undo'
@@ -169,6 +171,17 @@ function PaletteContent({
         { id: 'new-task', label: 'Nova tarefa', icon: Plus, shortcut: 'N', run: startNewTask },
         { id: 'new-list', label: 'Nova lista', icon: Plus, run: () => setCreatingList(true) },
         { id: 'undo', label: 'Desfazer', icon: Undo2, shortcut: 'Ctrl+Z', run: () => undoLast() },
+        {
+          id: 'sidebar',
+          label: 'Mostrar ou recolher a barra lateral',
+          icon: PanelLeft,
+          shortcut: 'Ctrl+B',
+          run: () => {
+            const state = useUiStore.getState()
+            if (isCompactLayout()) state.setDrawerOpen(true)
+            else state.setSidebarCollapsed(!state.isSidebarCollapsed)
+          }
+        },
         {
           id: 'export',
           label: 'Exportar Markdown',

@@ -4,13 +4,22 @@
 
 /*
  * Art Todo design tokens. They override the HeroUI default theme.
- * Keep the titlebar colors in src/shared/theme.ts in sync with --background.
+ * Keep the titlebar colors in src/shared/theme.ts and the backgrounds in
+ * src/shared/palette.ts in sync with --background.
+ *
+ * Accent and status colors are set at runtime on <html> by useTheme (see
+ * src/shared/palette.ts), shaded per theme to keep their contrast. The values
+ * below are fallbacks until then.
  */
 @layer base {
   :root,
   :host {
-    --accent: #ffca39;
-    --accent-foreground: #1a1a1a;
+    --accent-text: var(--accent);
+    --status-todo: var(--danger);
+    --status-doing: var(--warning);
+    --status-done: var(--success);
+    --status-done-fill: var(--success);
+    --status-done-foreground: var(--success-foreground);
     --radius: 0.5rem;
     --tooltip-delay: 400ms;
   }
@@ -30,10 +39,6 @@
     --sidebar: #f2f1ee;
     --sidebar-active: #e6e4df;
 
-    /* Accent as text or thin strokes: #FFCA39 fails contrast on light surfaces. */
-    --accent-text: #8a6500;
-    /* HeroUI tints soft accent text from #FFCA39, too light on light surfaces. */
-    --accent-soft-foreground: var(--accent-text);
     --focus: var(--accent-text);
     --link: var(--accent-text);
     --priority-high: #b42318;
@@ -53,7 +58,6 @@
     --sidebar: #1b1b1b;
     --sidebar-active: #282828;
 
-    --accent-text: #ffca39;
     --focus: var(--accent-text);
     --link: var(--accent-text);
     --priority-high: #f97066;
@@ -66,6 +70,11 @@
   --color-sidebar-active: var(--sidebar-active);
   --color-accent-text: var(--accent-text);
   --color-priority-high: var(--priority-high);
+  --color-status-todo: var(--status-todo);
+  --color-status-doing: var(--status-doing);
+  --color-status-done: var(--status-done);
+  --color-status-done-fill: var(--status-done-fill);
+  --color-status-done-foreground: var(--status-done-foreground);
 
   --animate-status-pop: status-pop 240ms cubic-bezier(0.34, 1.56, 0.64, 1);
 
@@ -93,9 +102,12 @@
   app-region: no-drag;
 }
 
-/* Keeps content clear of the native window controls drawn by titleBarOverlay. */
+/*
+ * Keeps content clear of the native window controls drawn by titleBarOverlay. A margin, not
+ * padding: padding utilities such as px-6 on the same element would override it.
+ */
 @utility titlebar-inset {
-  padding-right: calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw));
+  margin-right: calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw));
 }
 
 body {

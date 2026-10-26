@@ -169,17 +169,19 @@ export function TaskGrid({
             id={task.id}
             textValue={task.title}
             onDoubleClick={() => openTask(task.id)}
-            className={`outline-none focus-visible:ring-2 focus-visible:ring-focus data-[dragging]:opacity-40 ${
+            className={`group outline-none focus-visible:ring-2 focus-visible:ring-focus data-[dragging]:opacity-40 ${
               layout === 'list'
                 ? 'rounded-md transition-colors hover:bg-default/60'
                 : 'rounded-lg transition-shadow hover:shadow-sm'
             }`}
           >
-            {layout === 'list' ? (
-              <TaskRow task={task} {...rowOptions?.(task)} />
-            ) : (
-              <TaskCard task={task} {...rowOptions?.(task)} />
-            )}
+            {({ allowsDragging }) =>
+              layout === 'list' ? (
+                <TaskRow task={task} isDraggable={allowsDragging} {...rowOptions?.(task)} />
+              ) : (
+                <TaskCard task={task} isDraggable={allowsDragging} {...rowOptions?.(task)} />
+              )
+            }
           </GridListItem>
         )}
       </GridList>

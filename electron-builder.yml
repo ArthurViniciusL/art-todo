@@ -9,6 +9,11 @@ files:
   - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  # better-sqlite3 ships C sources and prebuilt binaries for every platform; keep linux-x64 only.
+  - '!node_modules/better-sqlite3/{deps,src}/**'
+  - '!node_modules/better-sqlite3/prebuilds/!(linux-x64).node'
+  - '!{scripts,e2e,docs,test-results,playwright-report}/**'
+  - '!{drizzle.config.ts,vitest.config.mts,playwright.config.ts,CLAUDE.md}'
 asarUnpack:
   - resources/**
 win:
@@ -32,6 +37,7 @@ linux:
   target:
     - deb
   executableName: art-todo
+  icon: build/icons
   maintainer: Arthur Vinicius <arthur.vsl.contato@gmail.com>
   category: Utility
   synopsis: Local, minimal todo list

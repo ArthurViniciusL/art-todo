@@ -39,4 +39,5 @@ Packaging: `electron-builder.yml` (Linux `deb` target). Publishing: `.github/wor
 ## Gotchas
 
 - GitHub Actions do not run while the account has a billing lock. Then the release must be built locally and uploaded by hand with `gh release create v<version> dist/art-todo_<version>_amd64.deb`, after the user confirms.
-- The app icon comes from `build/icon.png` (1024×1024 PNG, transparent).
+- The app icon is rendered from `build/icon-source.png` (square PNG, at least 512 px) with `pnpm icon:render`. To change it, replace that file and run the script.
+- Keep renderer-only packages in `devDependencies`; anything in `dependencies` ships inside the `.deb`.
