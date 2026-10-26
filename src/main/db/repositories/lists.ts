@@ -1,7 +1,8 @@
 import { asc, eq, max } from 'drizzle-orm'
-import type { List, ListDeleteMode, ViewMode } from '../../../shared/domain'
+import type { List, ListDeleteMode, ListMove, ViewMode } from '../../../shared/domain'
 import { defaultListName } from '../../../shared/list-name'
 import type { Db } from '../client'
+import { positionBetween } from '../../../shared/ordering'
 import { lists, tasks } from '../schema'
 
 export function createListsRepository(db: Db) {
@@ -47,6 +48,37 @@ export function createListsRepository(db: Db) {
       if (!trimmed) throw new Error('List name cannot be empty')
       if (getById(id).isInbox) throw new Error('The Inbox cannot be renamed')
       return db.update(lists).set({ name: trimmed }).where(eq(lists.id, id)).returning().get()
+    },
+
+    /** Places a user list between two others. */
+    move(id: number, { prevId, nextId }: ListMove): List {
+      const list = getById(id)
+      if (list.isInbox) throw new Error('The Inbox cannot be moved')
+      const neighbor = (neighborId: number | null): List | null => {
+        if (neighborId === null) return null
+        const other = getById(neighborId)
+        if (other.isInbox) throw new Error('The Inbox is not a reorder neighbor')
+        return other
+      }
+      return db.transaction(() => {
+        const position = positionBetween(neighbor(prevId), neighbor(nextId), {
+          fallback: () => list.position,
+          renumber: () =>
+            db
+              .select({ id: lists.id })
+              .from(lists)
+              .orderBy(asc(lists.position))
+              .all()
+              .forEach((row, index) => {
+                db.update(lists)
+                  .set({ position: index + 1 })
+                  .where(eq(lists.id, row.id))
+                  .run()
+              }),
+          reload: getById
+        })
+        return db.update(lists).set({ position }).where(eq(lists.id, id)).returning().get()
+      })
     },
 
     setViewMode(id: number, viewMode: ViewMode): List {

@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, gte, isNotNull, lte, max, ne, or, sql } from 'drizzle-orm'
 import type { NewTask, Task, TaskMove, TaskPatch } from '../../../shared/domain'
 import type { Db } from '../client'
+import { positionBetween } from '../../../shared/ordering'
 import { lists, tasks } from '../schema'
 
 export function createTasksRepository(db: Db) {
@@ -35,29 +36,19 @@ export function createTasksRepository(db: Db) {
     })
   }
 
-  /** Position between two neighbors in a list; renumbers when floats get too close. */
-  const positionBetween = (
-    listId: number,
-    prevId: number | null,
-    nextId: number | null
-  ): number => {
+  /** Position between two neighbors in a list. */
+  const positionInList = (listId: number, prevId: number | null, nextId: number | null): number => {
     const neighbor = (id: number | null): Task | null => {
       if (id === null) return null
       const task = getById(id)
       if (task.listId !== listId) throw new Error(`Task ${id} is not in list ${listId}`)
       return task
     }
-    let prev = neighbor(prevId)
-    let next = neighbor(nextId)
-    if (prev && next && next.position - prev.position < 1e-6) {
-      renumber(listId)
-      prev = getById(prev.id)
-      next = getById(next.id)
-    }
-    if (prev && next) return (prev.position + next.position) / 2
-    if (prev) return prev.position + 1
-    if (next) return next.position - 1
-    return nextPosition(listId)
+    return positionBetween(neighbor(prevId), neighbor(nextId), {
+      fallback: () => nextPosition(listId),
+      renumber: () => renumber(listId),
+      reload: getById
+    })
   }
 
   return {
@@ -142,7 +133,7 @@ export function createTasksRepository(db: Db) {
         const position =
           target.position ??
           (repositions
-            ? positionBetween(listId, target.prevId ?? null, target.nextId ?? null)
+            ? positionInList(listId, target.prevId ?? null, target.nextId ?? null)
             : current.position)
         const statusChanges = target.status !== undefined && target.status !== current.status
         return db

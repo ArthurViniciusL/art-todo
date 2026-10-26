@@ -76,3 +76,62 @@ test('deletes a list together with its tasks', async () => {
   await expect(page.getByRole('heading', { level: 1, name: 'Entrada' })).toBeVisible()
   await expect(page.getByRole('row', { name: 'Ideia solta' })).toHaveCount(0)
 })
+
+async function seedLists(names: string[]): Promise<void> {
+  await page.evaluate(async (names) => {
+    for (const name of names) await window.api.invoke('lists:create', name)
+  }, names)
+  await page.reload()
+}
+
+const listOrder = (): Promise<string[]> =>
+  listsNav()
+    .getByRole('button', { name: /^(?!Opções)/ })
+    .allTextContents()
+
+test('sorts lists alphabetically and back to manual order', async () => {
+  await seedLists(['Viagem', 'casa', 'Ácido', 'Banco'])
+  expect(await listOrder()).toEqual(['Viagem', 'casa', 'Ácido', 'Banco'])
+
+  await page.getByRole('button', { name: 'Ordenar listas' }).click()
+  await page.getByRole('menuitemradio', { name: 'Alfabética' }).click()
+  await expect.poll(listOrder).toEqual(['Ácido', 'Banco', 'casa', 'Viagem'])
+
+  // Ctrl+4 opens the first list as shown (once the menu has closed).
+  await expect(page.locator('[role=dialog]')).toHaveCount(0)
+  await page.keyboard.press('Control+4')
+  await expect(page.getByRole('heading', { level: 1, name: 'Ácido' })).toBeVisible()
+
+  await page.reload()
+  await expect.poll(listOrder).toEqual(['Ácido', 'Banco', 'casa', 'Viagem'])
+  await page.getByRole('button', { name: 'Ordenar listas' }).click()
+  await page.getByRole('menuitemradio', { name: 'Manual' }).click()
+  await expect.poll(listOrder).toEqual(['Viagem', 'casa', 'Ácido', 'Banco'])
+})
+
+test('reorders lists with Alt+arrows and from the list menu', async () => {
+  await seedLists(['Um', 'Dois', 'Três'])
+  await listsNav().getByRole('button', { name: 'Três', exact: true }).focus()
+  await page.keyboard.press('Alt+ArrowUp')
+  await expect.poll(listOrder).toEqual(['Um', 'Três', 'Dois'])
+  await expect(listsNav().getByRole('button', { name: 'Três', exact: true })).toBeFocused()
+
+  await listsNav().getByRole('button', { name: 'Opções da lista Um' }).click()
+  await page.getByRole('menuitem', { name: 'Mover para baixo' }).click()
+  await expect.poll(listOrder).toEqual(['Três', 'Um', 'Dois'])
+
+  await page.reload()
+  await expect.poll(listOrder).toEqual(['Três', 'Um', 'Dois'])
+})
+
+test('reorders lists by dragging', async () => {
+  await seedLists(['Um', 'Dois', 'Três'])
+  const from = (await listsNav().getByRole('button', { name: 'Três', exact: true }).boundingBox())!
+  const to = (await listsNav().getByRole('button', { name: 'Um', exact: true }).boundingBox())!
+  await page.mouse.move(from.x + 20, from.y + from.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(from.x + 25, from.y + from.height / 2 - 5, { steps: 5 })
+  await page.mouse.move(to.x + 20, to.y + 4, { steps: 15 })
+  await page.mouse.up()
+  await expect.poll(listOrder).toEqual(['Três', 'Um', 'Dois'])
+})

@@ -1,6 +1,8 @@
 import type {
   List,
   ListDeleteMode,
+  ListMove,
+  ListSort,
   NewTask,
   SmartView,
   Task,
@@ -22,11 +24,14 @@ export interface IpcContract {
   'settings:setAccent': (hex: string | null) => void
   'settings:getSmartViewMode': (view: SmartView) => ViewMode
   'settings:setSmartViewMode': (view: SmartView, viewMode: ViewMode) => void
+  'settings:getListSort': () => ListSort
+  'settings:setListSort': (sort: ListSort) => void
 
   'lists:getAll': () => List[]
   'lists:create': (name?: string) => List
   'lists:rename': (id: number, name: string) => List
   'lists:setViewMode': (id: number, viewMode: ViewMode) => List
+  'lists:move': (id: number, target: ListMove) => List
   'lists:remove': (id: number, mode: ListDeleteMode) => void
 
   'tasks:getByList': (listId: number) => Task[]
@@ -53,10 +58,13 @@ export const IPC_CHANNELS = [
   'settings:setAccent',
   'settings:getSmartViewMode',
   'settings:setSmartViewMode',
+  'settings:getListSort',
+  'settings:setListSort',
   'lists:getAll',
   'lists:create',
   'lists:rename',
   'lists:setViewMode',
+  'lists:move',
   'lists:remove',
   'tasks:getByList',
   'tasks:getDue',

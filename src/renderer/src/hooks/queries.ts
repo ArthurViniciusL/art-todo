@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type {
   List,
   ListDeleteMode,
+  ListMove,
+  ListSort,
   NewTask,
   SmartView,
   Task,
@@ -9,6 +11,7 @@ import type {
   TaskPatch,
   ViewMode
 } from '../../../shared/domain'
+import { positionBetween } from '../../../shared/ordering'
 import type { ThemePreference } from '../../../shared/theme'
 import { invoke } from '../lib/api'
 
@@ -16,6 +19,7 @@ export const queryKeys = {
   theme: ['settings', 'theme'] as const,
   accent: ['settings', 'accent'] as const,
   smartViewMode: (view: SmartView) => ['settings', 'viewMode', view] as const,
+  listSort: ['settings', 'listSort'] as const,
   lists: ['lists'] as const,
   tasks: ['tasks'] as const,
   tasksByList: (listId: number) => ['tasks', 'list', listId] as const,
@@ -66,6 +70,18 @@ export function useSetSmartViewMode() {
   })
 }
 
+export function useListSort() {
+  return useQuery({ queryKey: queryKeys.listSort, queryFn: () => invoke('settings:getListSort') })
+}
+
+export function useSetListSort() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (sort: ListSort) => invoke('settings:setListSort', sort),
+    onMutate: (sort) => client.setQueryData(queryKeys.listSort, sort)
+  })
+}
+
 // Lists
 
 export function useLists() {
@@ -87,6 +103,31 @@ export function useRenameList() {
   return useMutation({
     mutationFn: ({ id, name }: { id: number; name: string }) => invoke('lists:rename', id, name),
     onSuccess
+  })
+}
+
+export function useMoveList() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, target }: { id: number; target: ListMove }) =>
+      invoke('lists:move', id, target),
+    // Reorder at once so repeated Alt+arrows start from the new order; the refetch settles it.
+    onMutate: ({ id, target }) =>
+      client.setQueryData<List[]>(queryKeys.lists, (lists = []) => {
+        const byId = (listId: number | null): List | null =>
+          lists.find((list) => list.id === listId) ?? null
+        const moved = byId(id)
+        if (!moved) return lists
+        const position = positionBetween(byId(target.prevId), byId(target.nextId), {
+          fallback: () => moved.position,
+          renumber: () => {},
+          reload: (listId) => byId(listId)!
+        })
+        return lists
+          .map((list) => (list.id === id ? { ...list, position } : list))
+          .sort((a, b) => a.position - b.position)
+      }),
+    onSettled: () => client.invalidateQueries({ queryKey: queryKeys.lists })
   })
 }
 
