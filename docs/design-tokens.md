@@ -34,6 +34,7 @@ Card labels use the status color at 12–15 % as background with the status text
 | `--sidebar`        | `#F2F1EE` | `#1B1B1B` | Sidebar background                                     |
 | `--sidebar-active` | `#E6E4DF` | `#282828` | Active and hover sidebar item                          |
 | `--priority-high`  | `#B42318` | `#F97066` | High priority marker and overdue dates (6.6:1 / 6.5:1) |
+| `--priority-high-foreground` | `#FFFFFF` | `#1A1A1A` | Text on the critical priority pill (6.6:1 / 7.0:1) |
 
 Rules:
 

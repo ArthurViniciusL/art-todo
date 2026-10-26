@@ -53,11 +53,13 @@ describe('compareByTimeAndPriority', () => {
       task({ title: 'no time low', priority: 1 }),
       task({ title: '14:00', dueTime: '14:00' }),
       task({ title: 'no time high', priority: 3 }),
+      task({ title: 'no time critical', priority: 4 }),
       task({ title: '09:00', dueTime: '09:00', priority: 0 })
     ]
     expect(titles(tasks.sort(compareByTimeAndPriority))).toEqual([
       '09:00',
       '14:00',
+      'no time critical',
       'no time high',
       'no time low'
     ])

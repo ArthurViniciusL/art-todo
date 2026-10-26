@@ -1,9 +1,9 @@
 export type TaskStatus = 'todo' | 'doing' | 'done'
 export const TASK_STATUSES: readonly TaskStatus[] = ['todo', 'doing', 'done']
 
-/** 0 = none, 1 = low, 2 = medium, 3 = high. */
-export type Priority = 0 | 1 | 2 | 3
-export const PRIORITIES: readonly Priority[] = [0, 1, 2, 3]
+/** 0 = none, 1 = low, 2 = medium, 3 = high, 4 = critical. */
+export type Priority = 0 | 1 | 2 | 3 | 4
+export const PRIORITIES: readonly Priority[] = [0, 1, 2, 3, 4]
 
 export type ViewMode = 'list' | 'cards' | 'columns'
 export const VIEW_MODES: readonly ViewMode[] = ['list', 'cards', 'columns']
@@ -62,6 +62,8 @@ export interface TaskMove {
   /** Exact position, used to put a task back (undo). Wins over prevId / nextId. */
   position?: number
   status?: TaskStatus
+  /** Target list. Neighbors refer to that list; without them or a position, the task goes last. */
+  listId?: number
 }
 
 /** What happens to the tasks of a deleted list. */

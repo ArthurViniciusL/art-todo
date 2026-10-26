@@ -3,7 +3,9 @@ import {
   DateField,
   Input,
   Label,
+  ListBox,
   Modal,
+  Select,
   TextArea,
   TextField,
   TimeField,
@@ -20,17 +22,11 @@ import {
   type Task,
   type TaskStatus
 } from '../../../shared/domain'
-import { useUpdateTask } from '../hooks/queries'
+import { useLists, useUpdateTask } from '../hooks/queries'
 import { useTaskActions } from '../hooks/useTaskActions'
+import { PRIORITY_META, priorityMark } from '../priority'
 import { useUiStore } from '../stores/ui'
 import { STATUS_META } from '../task-status'
-
-const PRIORITY_LABELS: Record<Priority, string> = {
-  0: 'Nenhuma',
-  1: 'Baixa',
-  2: 'Média',
-  3: 'Alta'
-}
 
 const toTimeString = (time: Time): string =>
   `${String(time.hour).padStart(2, '0')}:${String(time.minute).padStart(2, '0')}`
@@ -40,18 +36,20 @@ function TaskEditorForm({ task, onClose }: { task: Task; onClose: () => void }):
   const [notes, setNotes] = useState(task.notes)
   const [status, setStatusDraft] = useState<TaskStatus>(task.status)
   const [priority, setPriority] = useState<Priority>(task.priority)
+  const [listId, setListId] = useState(task.listId)
   const [dueDate, setDueDate] = useState<CalendarDate | null>(
     task.dueDate ? parseDate(task.dueDate) : null
   )
   const [dueTime, setDueTime] = useState<Time | null>(task.dueTime ? parseTime(task.dueTime) : null)
   const { mutate: update } = useUpdateTask()
   const { setStatus, removeTask } = useTaskActions()
+  const { data: lists = [] } = useLists()
 
   const save = (): void => {
     if (!title.trim()) return
     const date = dueDate?.toString() ?? null
     const time = date && dueTime ? toTimeString(dueTime) : null
-    update({ id: task.id, patch: { title, notes, priority, dueDate: date, dueTime: time } })
+    update({ id: task.id, patch: { title, notes, priority, dueDate: date, dueTime: time, listId } })
     setStatus(task, status)
     onClose()
   }
@@ -118,6 +116,28 @@ function TaskEditorForm({ task, onClose }: { task: Task; onClose: () => void }):
           </div>
         </div>
 
+        <Select
+          value={listId}
+          onChange={(key) => key !== null && setListId(Number(key))}
+          className="max-w-xs"
+        >
+          <Label>Lista</Label>
+          <Select.Trigger>
+            <Select.Value />
+            <Select.Indicator />
+          </Select.Trigger>
+          <Select.Popover>
+            <ListBox>
+              {lists.map((list) => (
+                <ListBox.Item key={list.id} id={list.id} textValue={list.name}>
+                  {list.name}
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+              ))}
+            </ListBox>
+          </Select.Popover>
+        </Select>
+
         <div className="flex flex-col gap-1.5">
           <span id="priority-label" className="text-sm font-medium">
             Prioridade
@@ -135,14 +155,11 @@ function TaskEditorForm({ task, onClose }: { task: Task; onClose: () => void }):
             {PRIORITIES.map((option) => (
               <ToggleButton key={option} id={String(option)}>
                 {option > 0 && (
-                  <span
-                    aria-hidden
-                    className={`font-bold ${option === 3 ? 'text-priority-high' : 'text-muted'}`}
-                  >
-                    {'!'.repeat(option)}
+                  <span aria-hidden className={`font-bold ${PRIORITY_META[option].className}`}>
+                    {priorityMark(option)}
                   </span>
                 )}
-                {PRIORITY_LABELS[option]}
+                {PRIORITY_META[option].label}
               </ToggleButton>
             ))}
           </ToggleButtonGroup>

@@ -1,8 +1,9 @@
 import { Button } from '@heroui/react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
-import { TASK_STATUSES, type Task, type TaskStatus } from '../../../shared/domain'
+import { TASK_STATUSES, type NewTask, type Task, type TaskStatus } from '../../../shared/domain'
 import { STATUS_META } from '../task-status'
+import { QuickAdd } from './QuickAdd'
 import { TaskGrid } from './TaskGrid'
 import type { TaskRowOptions } from './TaskRow'
 
@@ -13,6 +14,8 @@ interface TaskBoardProps {
   rowOptions?: (task: Task) => TaskRowOptions
   /** Allow manual reordering inside the open columns (lists, not smart views). */
   isReorderable?: boolean
+  /** Show a "Nova tarefa" field at the top of the A fazer column, creating tasks with these. */
+  newTaskDefaults?: Omit<NewTask, 'title'>
 }
 
 const newestDoneFirst = (a: Task, b: Task): number => (b.completedAt ?? 0) - (a.completedAt ?? 0)
@@ -22,7 +25,8 @@ export function TaskBoard({
   tasks,
   compare,
   rowOptions,
-  isReorderable = false
+  isReorderable = false,
+  newTaskDefaults
 }: TaskBoardProps): React.JSX.Element {
   const [isDoneCollapsed, setIsDoneCollapsed] = useState(false)
 
@@ -68,6 +72,7 @@ export function TaskBoard({
                 </Button>
               )}
             </header>
+            {status === 'todo' && newTaskDefaults && <QuickAdd defaults={newTaskDefaults} />}
             {!isCollapsed && (
               <div className="min-h-0 flex-1 overflow-y-auto p-0.5">
                 <TaskGrid

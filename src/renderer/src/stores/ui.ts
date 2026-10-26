@@ -4,6 +4,13 @@ import type { SmartView } from '../../../shared/domain'
 
 export type { SmartView }
 
+/** Right-click menu of a task, at viewport coordinates. */
+export interface TaskContextMenuState {
+  taskId: number
+  x: number
+  y: number
+}
+
 /** What the content area shows. `null` means the Inbox. */
 export type Selection = { kind: 'list'; listId: number } | { kind: 'view'; view: SmartView } | null
 
@@ -13,6 +20,7 @@ interface UiState {
   editingTaskId: number | null
   /** Task whose title is being edited inline. */
   renamingTaskId: number | null
+  taskContextMenu: TaskContextMenuState | null
   /** Done tasks that stay in place for a moment before moving to "Concluídas". */
   recentlyDone: ReadonlySet<number>
   /** Wide windows: sidebar shown as a narrow icon rail. Saved between sessions. */
@@ -27,6 +35,7 @@ interface UiState {
   select: (selection: Selection) => void
   openTask: (id: number | null) => void
   renameTask: (id: number | null) => void
+  setTaskContextMenu: (menu: TaskContextMenuState | null) => void
   setRecentlyDone: (id: number, isRecent: boolean) => void
   setSidebarCollapsed: (isCollapsed: boolean) => void
   setDrawerOpen: (isOpen: boolean) => void
@@ -42,6 +51,7 @@ export const useUiStore = create<UiState>()(
       selection: null,
       editingTaskId: null,
       renamingTaskId: null,
+      taskContextMenu: null,
       recentlyDone: new Set(),
       isSidebarCollapsed: false,
       isDrawerOpen: false,
@@ -52,6 +62,7 @@ export const useUiStore = create<UiState>()(
       select: (selection) => set({ selection, renamingTaskId: null }),
       openTask: (editingTaskId) => set({ editingTaskId }),
       renameTask: (renamingTaskId) => set({ renamingTaskId }),
+      setTaskContextMenu: (taskContextMenu) => set({ taskContextMenu }),
       setSidebarCollapsed: (isSidebarCollapsed) => set({ isSidebarCollapsed }),
       setDrawerOpen: (isDrawerOpen) => set({ isDrawerOpen }),
       setPaletteOpen: (isPaletteOpen) => set({ isPaletteOpen }),

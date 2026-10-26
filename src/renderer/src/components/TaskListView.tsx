@@ -8,6 +8,7 @@ import { ContentHeader } from './ContentHeader'
 import { ExportButton, ExportDialog } from './ExportDialog'
 import { QuickAdd } from './QuickAdd'
 import { TaskBoard } from './TaskBoard'
+import { TaskContextMenu } from './TaskContextMenu'
 import { TaskEditorModal } from './TaskEditorModal'
 import { TaskGrid } from './TaskGrid'
 import { ViewModeSwitcher } from './ViewModeSwitcher'
@@ -42,12 +43,16 @@ export function TaskListView({ list }: { list: List }): React.JSX.Element {
             mode === 'list' ? 'max-w-2xl' : 'max-w-6xl'
           } ${mode === 'columns' ? 'min-h-0 flex-1' : ''}`}
         >
-          <QuickAdd defaults={{ listId: list.id }} />
-
           {mode === 'columns' ? (
-            <TaskBoard tasks={tasks} compare={byPosition} isReorderable />
+            <TaskBoard
+              tasks={tasks}
+              compare={byPosition}
+              isReorderable
+              newTaskDefaults={{ listId: list.id }}
+            />
           ) : (
             <>
+              <QuickAdd defaults={{ listId: list.id }} />
               <TaskGrid label="Tarefas" tasks={active} layout={layout} isReorderable />
 
               {tasks.length === 0 && (
@@ -78,6 +83,7 @@ export function TaskListView({ list }: { list: List }): React.JSX.Element {
         </div>
       </div>
       <TaskEditorModal tasks={tasks} isLoaded={isSuccess} />
+      <TaskContextMenu tasks={tasks} />
       <ExportDialog
         source={{
           title: list.name,

@@ -15,7 +15,8 @@ const PRIORITY_TAGS: Record<Priority, string | null> = {
   0: null,
   1: '!baixa',
   2: '!média',
-  3: '!alta'
+  3: '!alta',
+  4: '!crítico'
 }
 const STATUS_TAGS: Record<TaskStatus, string | null> = {
   todo: null,

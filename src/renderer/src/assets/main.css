@@ -42,6 +42,7 @@
     --focus: var(--accent-text);
     --link: var(--accent-text);
     --priority-high: #b42318;
+    --priority-high-foreground: #ffffff;
   }
 
   .dark,
@@ -61,6 +62,7 @@
     --focus: var(--accent-text);
     --link: var(--accent-text);
     --priority-high: #f97066;
+    --priority-high-foreground: #1a1a1a;
   }
 }
 
@@ -70,6 +72,7 @@
   --color-sidebar-active: var(--sidebar-active);
   --color-accent-text: var(--accent-text);
   --color-priority-high: var(--priority-high);
+  --color-priority-high-foreground: var(--priority-high-foreground);
   --color-status-todo: var(--status-todo);
   --color-status-doing: var(--status-doing);
   --color-status-done: var(--status-done);

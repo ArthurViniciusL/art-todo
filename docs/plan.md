@@ -20,7 +20,7 @@ Construir um app desktop de todo list, local e offline, empacotado com Electron 
 - `lists`: id, name, position, view_mode (`list`|`cards`|`columns`), is_inbox, created_at.
   - A **Entrada** é fixa: não pode ser apagada nem renomeada.
   - Uma lista criada sem nome recebe `dd/mm/yy - hh:mm:ss`. O nome é gravado na criação e pode ser editado depois.
-- `tasks`: id, list_id, title, notes, status (`todo`|`doing`|`done`), priority (0–3: nenhuma, baixa, média, alta), due_date, due_time (opcional), position (uma única ordem por lista), completed_at, created_at, updated_at.
+- `tasks`: id, list_id, title, notes, status (`todo`|`doing`|`done`), priority (0–4: nenhuma, baixa, média, alta, crítico), due_date, due_time (opcional), position (uma única ordem por lista), completed_at, created_at, updated_at.
 - `settings`: tema (`system`|`light`|`dark`), estado da janela.
 
 ## Funcionalidades MVP (v1)
@@ -35,7 +35,7 @@ Construir um app desktop de todo list, local e offline, empacotado com Electron 
 3. Várias listas + Entrada. Exclusão de lista: um diálogo oferece "Apagar tudo" ou "Mover tarefas para Entrada".
 4. Exclusão de tarefa: imediata, com toast "desfazer" (~5 s).
 5. Data + hora opcional. Visões **Hoje** (atrasadas em seção própria + hoje) e **Próximos** (7 dias agrupados por dia + grupo "Depois"). As visões ordenam por hora e depois por prioridade.
-6. Prioridade: marcador à direita (`!`/`!!`/`!!!` em cinza, com Alta em vermelho suave).
+6. Prioridade: marcador à direita (`!`/`!!` em cinza, `!!!` Alta em vermelho suave, `!!!!` Crítico em selo vermelho preenchido).
 7. **Modos de visualização**: Lista, Cards (com label de status) e Colunas (A fazer | Fazendo | Feito).
    - O modo fica salvo por lista. Os três modos existem em todas as visões. Nas visões inteligentes, Colunas mostra só os status e perde o agrupamento por dia.
    - Troca de modo por botões segmentados no cabeçalho + `Ctrl+Shift+1/2/3`.
@@ -48,8 +48,10 @@ Construir um app desktop de todo list, local e offline, empacotado com Electron 
     - Uma opção inclui ou omite as concluídas. A partir do modo Colunas, há a opção de agrupar por `## A fazer / ## Fazendo / ## Feito`.
     - O nome do arquivo é sanitizado (`/` e `:` viram `-`). O título `#` mantém o nome original.
 13. Janela: instância única, lembra tamanho e posição, e fechar encerra o app.
+14. Menu de contexto da tarefa (clique direito, `Shift+F10` ou tecla de menu): Editar, Mover para lista, Excluir. O modal também troca a lista da tarefa.
+15. Em Colunas, o campo "Nova tarefa" fica no topo da coluna A fazer.
 
-**v2 (fora do escopo agora):** tags, subtarefas, lembretes/notificações, recorrência, backup/import JSON, tray, pastas de listas, quick-add global.
+**v2 (fora do escopo agora):** tags, subtarefas, recorrência, backup/import JSON, tray, pastas de listas, quick-add global.
 
 ## Identidade visual
 
@@ -104,6 +106,9 @@ Mudanças pedidas na fase 8: o acento padrão passa a ser o do HeroUI (`#0485F7`
 6. DnD (lista + entre colunas), command palette, atalhos.
 7. Export Markdown (arquivo + clipboard).
 8. E2E, polimento, ícone do usuário, release `.deb` v1.0.0.
+9. Ajustes de tarefas: prioridade Crítico, menu de contexto, mover tarefa entre listas, "Nova tarefa" na coluna A fazer.
+10. Ordem das listas na sidebar: alfabética ou manual (arrastar).
+11. Alertas: notificação do sistema na hora da tarefa (06:00 quando só tem data), só com o app aberto. Alertas perdidos viram um resumo ao abrir.
 
 ## Verificação
 

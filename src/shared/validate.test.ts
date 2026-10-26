@@ -20,7 +20,16 @@ describe('validate', () => {
     expect(() => v.taskPatch({ dueDate: '2026-13-01' })).toThrow()
     expect(() => v.taskPatch({ dueTime: '24:00' })).toThrow()
     expect(() => v.taskPatch({ status: 'later' })).toThrow()
-    expect(() => v.taskPatch({ priority: 4 })).toThrow()
+    expect(() => v.taskPatch({ priority: 5 })).toThrow()
+  })
+
+  it('accepts a target list in a move', () => {
+    expect(v.taskMove({ listId: 2, position: 1.5 })).toEqual({ listId: 2, position: 1.5 })
+    expect(() => v.taskMove({ listId: 0 })).toThrow()
+  })
+
+  it('accepts critical priority', () => {
+    expect(v.taskPatch({ priority: 4 })).toEqual({ priority: 4 })
   })
 
   it('allows clearing the date and time with null', () => {

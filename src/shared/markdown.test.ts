@@ -46,6 +46,12 @@ describe('taskToMarkdown', () => {
     ).toBe('- [ ] Reunião — 📅 2026-10-25 09:30 · !baixa')
   })
 
+  it('tags critical priority', () => {
+    expect(taskToMarkdown(task({ title: 'Servidor', priority: 4 }))).toBe(
+      '- [ ] Servidor — !crítico'
+    )
+  })
+
   it('indents notes under the task, keeping blank lines', () => {
     expect(taskToMarkdown(task({ title: 'Viagem', notes: 'Passagens\n\nHotel  ' }))).toBe(
       '- [ ] Viagem\n  Passagens\n\n  Hotel'
