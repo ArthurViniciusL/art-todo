@@ -27,7 +27,7 @@ test('cards show the status as a label', async () => {
   await seedInbox([{ title: 'Escrever post', status: 'doing', notes: 'Rascunho no caderno' }])
   await mode('Cards').click()
   const card = page
-    .getByRole('grid', { name: 'Tarefas' })
+    .getByRole('grid', { name: 'Entrada' })
     .getByRole('row', { name: /Escrever post/ })
   await expect(card.getByRole('button', { name: /Status: Fazendo/ })).toHaveText('Fazendo')
   await expect(card.getByText('Rascunho no caderno')).toBeVisible()

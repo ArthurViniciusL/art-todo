@@ -28,3 +28,28 @@ export function positionBetween<T extends Positioned>(
   if (next) return next.position - 1
   return fallback()
 }
+
+interface Completable {
+  status: string
+  completedAt: number | null
+}
+
+/** Done tasks, most recently completed first. */
+export function newestDoneFirst(a: Completable, b: Completable): number {
+  return (b.completedAt ?? 0) - (a.completedAt ?? 0)
+}
+
+/**
+ * Splits a view's tasks into the open ones (plus done tasks that linger for a moment in
+ * `recentlyDone`) and the done ones, newest first, for the "Concluídas" section.
+ */
+export function splitDone<T extends Completable & { id: number }>(
+  tasks: readonly T[],
+  recentlyDone: ReadonlySet<number>
+): { active: T[]; done: T[] } {
+  const isActive = (task: T): boolean => task.status !== 'done' || recentlyDone.has(task.id)
+  return {
+    active: tasks.filter(isActive),
+    done: tasks.filter((task) => !isActive(task)).sort(newestDoneFirst)
+  }
+}

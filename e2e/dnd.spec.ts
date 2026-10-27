@@ -48,10 +48,10 @@ const rows = (grid: string): Locator =>
 
 test('reorders tasks in a list by dragging', async () => {
   await seedInbox([{ title: 'Primeira' }, { title: 'Segunda' }, { title: 'Terceira' }])
-  await drag(rows('Tarefas').nth(2), rows('Tarefas').nth(0), 'top')
-  await expect(rows('Tarefas')).toHaveText([/Terceira/, /Primeira/, /Segunda/])
+  await drag(rows('Entrada').nth(2), rows('Entrada').nth(0), 'top')
+  await expect(rows('Entrada')).toHaveText([/Terceira/, /Primeira/, /Segunda/])
   await page.reload()
-  await expect(rows('Tarefas')).toHaveText([/Terceira/, /Primeira/, /Segunda/])
+  await expect(rows('Entrada')).toHaveText([/Terceira/, /Primeira/, /Segunda/])
 })
 
 test('dragging a card to another column changes its status', async () => {
@@ -82,6 +82,6 @@ test('reorders with the keyboard from the drag handle', async () => {
   await page.keyboard.press('ArrowUp')
   await expect(page.getByRole('button', { name: 'Inserir antes de Primeira' })).toBeFocused()
   await page.keyboard.press('Enter')
-  await expect(rows('Tarefas')).toHaveText([/Terceira/, /Primeira/, /Segunda/])
+  await expect(rows('Entrada')).toHaveText([/Terceira/, /Primeira/, /Segunda/])
   expect(warnings.filter((text) => text.includes('slot="drag"'))).toEqual([])
 })

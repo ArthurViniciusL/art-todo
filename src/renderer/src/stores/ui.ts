@@ -37,6 +37,8 @@ interface UiState {
   isCreatingList: boolean
   /** Bumped to ask the visible quick add field to take focus. */
   quickAddFocusRequest: number
+  /** A task being moved to another list; its row takes focus once it shows in that list. */
+  movedTaskFocus: { taskId: number; listId: number } | null
   select: (selection: Selection) => void
   openTask: (id: number | null) => void
   renameTask: (id: number | null) => void
@@ -48,6 +50,7 @@ interface UiState {
   setExportOpen: (isOpen: boolean) => void
   setCreatingList: (isCreating: boolean) => void
   focusQuickAdd: () => void
+  focusMovedTask: (target: { taskId: number; listId: number } | null) => void
 }
 
 export const useUiStore = create<UiState>()(
@@ -64,7 +67,8 @@ export const useUiStore = create<UiState>()(
       isExportOpen: false,
       isCreatingList: false,
       quickAddFocusRequest: 0,
-      select: (selection) => set({ selection, renamingTaskId: null }),
+      movedTaskFocus: null,
+      select: (selection) => set({ selection, renamingTaskId: null, movedTaskFocus: null }),
       openTask: (editingTaskId) => set({ editingTaskId }),
       renameTask: (renamingTaskId) => set({ renamingTaskId }),
       setTaskContextMenu: (taskContextMenu) => set({ taskContextMenu }),
@@ -73,6 +77,7 @@ export const useUiStore = create<UiState>()(
       setPaletteOpen: (isPaletteOpen) => set({ isPaletteOpen }),
       setExportOpen: (isExportOpen) => set({ isExportOpen }),
       setCreatingList: (isCreatingList) => set({ isCreatingList }),
+      focusMovedTask: (movedTaskFocus) => set({ movedTaskFocus }),
       focusQuickAdd: () =>
         set((state) => ({ quickAddFocusRequest: state.quickAddFocusRequest + 1 })),
       setRecentlyDone: (id, isRecent) =>

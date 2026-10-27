@@ -13,7 +13,9 @@ test.afterEach(async () => {
   await app.close()
 })
 
-const tasks = (): ReturnType<Page['getByRole']> => page.getByRole('grid', { name: 'Tarefas' })
+// Open tasks: the Inbox's own section, or a list's grid.
+const tasks = (): ReturnType<Page['getByRole']> =>
+  page.getByRole('grid', { name: /^(Entrada|Tarefas)$/ })
 const done = (): ReturnType<Page['getByRole']> => page.getByRole('grid', { name: 'Concluídas' })
 
 async function addTask(title: string): Promise<void> {
