@@ -25,7 +25,8 @@ function App(): React.JSX.Element {
       : lists.find((item) => (selection ? item.id === selection.listId : item.isInbox))
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-foreground">
+    // `relative`: absolutely positioned descendants (sr-only text) must not grow the page.
+    <div className="relative flex h-screen overflow-hidden bg-background text-foreground">
       <AppSidebar />
       <main className="flex min-w-0 flex-1 flex-col">
         {list?.isInbox && <InboxView inbox={list} />}

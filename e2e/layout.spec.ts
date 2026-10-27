@@ -128,3 +128,25 @@ test('header controls stay clear of the native window buttons', async () => {
       .toBe(true)
   }
 })
+
+test('overdue tasks in a long column do not make the page scroll', async () => {
+  await open()
+  await page.evaluate(async () => {
+    const [inbox] = await window.api.invoke('lists:getAll')
+    for (let i = 0; i < 20; i++) {
+      await window.api.invoke('tasks:create', {
+        listId: inbox.id,
+        title: `Atrasada ${i}`,
+        dueDate: '2020-01-01'
+      })
+    }
+  })
+  await page.reload()
+  await page.getByRole('radio', { name: 'Colunas' }).click()
+  await expect(page.getByRole('row', { name: /Atrasada 19/ })).toBeAttached()
+  // Hidden "(atrasada)" labels below the fold used to stretch the document past the window.
+  const overflow = await page.evaluate(
+    () => document.scrollingElement!.scrollHeight - window.innerHeight
+  )
+  expect(overflow).toBe(0)
+})
