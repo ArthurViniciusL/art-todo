@@ -22,6 +22,7 @@ import { InlineNameInput } from './InlineNameInput'
 import { SidebarItem } from './SidebarItem'
 import { SortableListItem } from './SortableListItem'
 import { ThemeSwitcher } from './ThemeSwitcher'
+import { UpdateBanner, UpdateButton } from './UpdateButton'
 
 /** `full`: wide window; `rail`: collapsed to icons; `drawer`: overlay on narrow windows. */
 export type SidebarVariant = 'full' | 'rail' | 'drawer'
@@ -75,7 +76,8 @@ export function Sidebar({ variant = 'full' }: { variant?: SidebarVariant }): Rea
           isRail ? 'justify-center' : 'justify-between pl-4 pr-2'
         }`}
       >
-        {!isRail && <span className="text-sm font-semibold tracking-tight">Art Todo</span>}
+        {!isRail && <span className="flex-1 text-sm font-semibold tracking-tight">Art Todo</span>}
+        {!isRail && <UpdateButton />}
         <Button
           size="sm"
           variant="ghost"
@@ -101,6 +103,8 @@ export function Sidebar({ variant = 'full' }: { variant?: SidebarVariant }): Rea
           )}
         </Button>
       </div>
+
+      {isRail && <UpdateButton />}
 
       <nav
         aria-label="Visões"
@@ -290,6 +294,8 @@ export function Sidebar({ variant = 'full' }: { variant?: SidebarVariant }): Rea
           )}
         </nav>
       </section>
+
+      {!isRail && <UpdateBanner />}
 
       <footer
         className={`flex w-full border-t border-separator py-2.5 ${

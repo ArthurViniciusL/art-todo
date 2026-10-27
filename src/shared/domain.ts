@@ -78,5 +78,15 @@ export interface ListMove {
   nextId: number | null
 }
 
+/** In-app update progress, owned by the main process. */
+export type UpdateState =
+  | { status: 'idle' }
+  | { status: 'checking' }
+  | { status: 'available'; version: string }
+  | { status: 'downloading'; version: string; progress: number }
+  | { status: 'ready'; version: string }
+  | { status: 'installing'; version: string }
+  | { status: 'error'; message: string; version?: string }
+
 /** What happens to the tasks of a deleted list. */
 export type ListDeleteMode = 'delete-tasks' | 'move-to-inbox'

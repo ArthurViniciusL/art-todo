@@ -6,6 +6,7 @@ import type {
   NewTask,
   SmartView,
   Task,
+  UpdateState,
   TaskMove,
   TaskPatch,
   ViewMode
@@ -26,6 +27,8 @@ export interface IpcContract {
   'settings:setSmartViewMode': (view: SmartView, viewMode: ViewMode) => void
   'settings:getListSort': () => ListSort
   'settings:setListSort': (sort: ListSort) => void
+  'settings:getUpdateAutoCheck': () => boolean
+  'settings:setUpdateAutoCheck': (enabled: boolean) => void
 
   'lists:getAll': () => List[]
   'lists:create': (name?: string) => List
@@ -42,6 +45,12 @@ export interface IpcContract {
   'tasks:search': (query: string) => Task[]
   'tasks:remove': (id: number) => Task
   'tasks:restore': (task: Task) => Task
+
+  'updates:getState': () => UpdateState
+  'updates:check': () => void
+  'updates:download': () => void
+  /** Installs the downloaded package with pkexec, then relaunches the app. */
+  'updates:install': () => void
 
   /** Opens a save dialog for `title`.md; false when cancelled. */
   'export:saveMarkdown': (title: string, content: string) => boolean
@@ -60,6 +69,8 @@ export const IPC_CHANNELS = [
   'settings:setSmartViewMode',
   'settings:getListSort',
   'settings:setListSort',
+  'settings:getUpdateAutoCheck',
+  'settings:setUpdateAutoCheck',
   'lists:getAll',
   'lists:create',
   'lists:rename',
@@ -74,6 +85,10 @@ export const IPC_CHANNELS = [
   'tasks:search',
   'tasks:remove',
   'tasks:restore',
+  'updates:getState',
+  'updates:check',
+  'updates:download',
+  'updates:install',
   'export:saveMarkdown',
   'export:copy'
 ] as const satisfies readonly IpcChannel[]
@@ -90,12 +105,14 @@ export type ReminderTarget = { taskId: number; listId: number } | null
 export interface IpcEvents {
   /** A reminder notification was clicked. */
   'reminders:open': (target: ReminderTarget) => void
+  /** The in-app update moved to a new state. */
+  'updates:state': (state: UpdateState) => void
 }
 
 export type IpcEvent = keyof IpcEvents
 
 /** Runtime list of events; the preload refuses anything else. */
-export const IPC_EVENTS = ['reminders:open'] as const satisfies readonly IpcEvent[]
+export const IPC_EVENTS = ['reminders:open', 'updates:state'] as const satisfies readonly IpcEvent[]
 
 type MissingEvents = Exclude<IpcEvent, (typeof IPC_EVENTS)[number]>
 const eventsAreComplete: MissingEvents extends never ? true : MissingEvents = true

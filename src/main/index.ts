@@ -6,8 +6,10 @@ import { openDatabase } from './db/client'
 import { createListsRepository } from './db/repositories/lists'
 import { createSettingsRepository, type SettingsRepository } from './db/repositories/settings'
 import { createTasksRepository } from './db/repositories/tasks'
-import { registerIpcHandlers } from './ipc'
+import { registerIpcHandlers, UPDATE_AUTO_CHECK_KEY } from './ipc'
 import { startReminders, type Reminder } from './reminders'
+import { systemUpdaterDeps } from './update-system'
+import { createUpdater } from './updates'
 import { applyTheme, currentTitlebarOverlay, storedTheme, watchNativeTheme } from './theme'
 import { loadWindowState, trackWindowState } from './window-state'
 
@@ -19,6 +21,9 @@ if (process.env['ART_TODO_USER_DATA']) {
 if (!app.requestSingleInstanceLock()) {
   app.quit()
 }
+
+const UPDATE_FIRST_CHECK_MS = Number(process.env['ART_TODO_UPDATE_DELAY_MS']) || 10_000
+const UPDATE_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000
 
 // Electron drops a notification's click handler once the object is garbage collected.
 const shownNotifications = new Set<Notification>()
@@ -105,13 +110,33 @@ app.whenReady().then(() => {
   )
   const settings = createSettingsRepository(db)
   const tasks = createTasksRepository(db)
-  registerIpcHandlers({ lists: createListsRepository(db), tasks, settings })
+  // ART_TODO_UPDATE_URL points E2E tests (and manual checks) at a local release feed.
+  const updateUrl = process.env['ART_TODO_UPDATE_URL']
+  const updater = createUpdater({
+    ...systemUpdaterDeps,
+    url: updateUrl,
+    emit: (state) => {
+      for (const window of BrowserWindow.getAllWindows()) {
+        window.webContents.send('updates:state', state)
+      }
+    }
+  })
+  registerIpcHandlers({ lists: createListsRepository(db), tasks, settings, updater })
 
   // Set before the window exists so the first paint already has the right theme.
   applyTheme(storedTheme(settings))
   watchNativeTheme()
 
   let mainWindow = createWindow(settings)
+
+  // Automatic checks only in the installed app (or against a test feed), and only when enabled.
+  if (app.isPackaged || updateUrl) {
+    const autoCheck = (): void => {
+      if (settings.get<unknown>(UPDATE_AUTO_CHECK_KEY, true) !== false) void updater.check()
+    }
+    setTimeout(autoCheck, UPDATE_FIRST_CHECK_MS)
+    setInterval(autoCheck, UPDATE_CHECK_INTERVAL_MS)
+  }
 
   // Start once the renderer can receive a notification click. Without notification support,
   // alerts stay pending instead of being marked as fired.

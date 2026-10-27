@@ -52,6 +52,7 @@ Construir um app desktop de todo list, local e offline, empacotado com Electron 
 15. Em Colunas, o campo "Nova tarefa" fica no topo da coluna A fazer.
 16. Ordem das listas na sidebar: Manual (arrastar, `Alt+↑/↓` ou "Mover para cima/baixo" no menu da lista) ou Alfabética. A escolha fica salva e `Ctrl+1..9` segue a ordem mostrada.
 17. Alertas: notificação do sistema na hora da tarefa, ou às 06:00 quando ela só tem data. Funciona só com o app aberto. Vários alertas ao mesmo tempo (ao abrir o app ou às 06:00) viram um resumo. Datas já passadas ao criar ou editar não disparam alerta. Clicar no alerta abre a tarefa, ou a visão Hoje no caso do resumo.
+18. Atualização pelo app: ícone no topo da sidebar verifica, baixa e instala novas versões do GitHub Releases. O `.deb` é conferido pelo SHA-256 das notas e instalado com `pkexec` (senha do sistema); o app reinicia na versão nova. Verificação automática ao abrir e a cada 24 h, com opção de desligar na paleta. Ver ADR-0004.
 
 **v2 (fora do escopo agora):** tags, subtarefas, recorrência, backup/import JSON, tray, pastas de listas, quick-add global.
 
@@ -111,6 +112,7 @@ Mudanças pedidas na fase 8: o acento padrão passa a ser o do HeroUI (`#0485F7`
 9. Ajustes de tarefas: prioridade Crítico, menu de contexto, mover tarefa entre listas, "Nova tarefa" na coluna A fazer.
 10. Ordem das listas na sidebar: alfabética ou manual (arrastar).
 11. Alertas: notificação do sistema na hora da tarefa (06:00 quando só tem data), só com o app aberto. Alertas perdidos viram um resumo ao abrir.
+12. Atualização pelo app (GitHub Releases + pkexec).
 
 ## Verificação
 

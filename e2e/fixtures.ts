@@ -8,9 +8,12 @@ export function newProfileDir(): string {
 }
 
 /** Launches the built app against an isolated profile directory. */
-export function launchApp(profileDir = newProfileDir()): Promise<ElectronApplication> {
+export function launchApp(
+  profileDir = newProfileDir(),
+  env: Record<string, string> = {}
+): Promise<ElectronApplication> {
   return electron.launch({
     args: ['.'],
-    env: { ...process.env, ART_TODO_USER_DATA: profileDir }
+    env: { ...process.env, ART_TODO_USER_DATA: profileDir, ...env }
   })
 }

@@ -1,6 +1,6 @@
 # Art Todo — guide for Claude
 
-Local, offline todo list desktop app. Electron 45 + electron-vite + React 19 + TypeScript + HeroUI v3 (React Aria) + Tailwind CSS v4. Ships as a Linux `.deb`.
+Local, offline todo list desktop app. The only network access is the opt-out update check against GitHub Releases (ADR-0004). Electron 45 + electron-vite + React 19 + TypeScript + HeroUI v3 (React Aria) + Tailwind CSS v4. Ships as a Linux `.deb`.
 
 The full product spec and roadmap is in `docs/plan.md`. Architecture decisions are in `docs/adr/`. Read both before starting a phase.
 

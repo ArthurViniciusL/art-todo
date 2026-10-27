@@ -20,6 +20,8 @@ export const queryKeys = {
   accent: ['settings', 'accent'] as const,
   smartViewMode: (view: SmartView) => ['settings', 'viewMode', view] as const,
   listSort: ['settings', 'listSort'] as const,
+  updateAutoCheck: ['settings', 'updateAutoCheck'] as const,
+  updateState: ['updates', 'state'] as const,
   lists: ['lists'] as const,
   tasks: ['tasks'] as const,
   tasksByList: (listId: number) => ['tasks', 'list', listId] as const,
@@ -79,6 +81,21 @@ export function useSetListSort() {
   return useMutation({
     mutationFn: (sort: ListSort) => invoke('settings:setListSort', sort),
     onMutate: (sort) => client.setQueryData(queryKeys.listSort, sort)
+  })
+}
+
+export function useUpdateAutoCheck() {
+  return useQuery({
+    queryKey: queryKeys.updateAutoCheck,
+    queryFn: () => invoke('settings:getUpdateAutoCheck')
+  })
+}
+
+export function useSetUpdateAutoCheck() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (enabled: boolean) => invoke('settings:setUpdateAutoCheck', enabled),
+    onMutate: (enabled) => client.setQueryData(queryKeys.updateAutoCheck, enabled)
   })
 }
 
