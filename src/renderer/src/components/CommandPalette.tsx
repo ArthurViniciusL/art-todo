@@ -8,6 +8,7 @@ import {
   Moon,
   PanelLeft,
   Plus,
+  RefreshCw,
   Search,
   Sun,
   Undo2,
@@ -31,8 +32,11 @@ import {
   useSearchTasks,
   useSetListViewMode,
   useSetSmartViewMode,
-  useSetThemePreference
+  useSetThemePreference,
+  useSetUpdateAutoCheck,
+  useUpdateAutoCheck
 } from '../hooks/queries'
+import { updateAction, useUpdateState } from '../hooks/useUpdate'
 import { isCompactLayout } from '../hooks/useCompactLayout'
 import { useNavTargets, useStartNewTask } from '../hooks/useNavigation'
 import { selectionForList, useUiStore } from '../stores/ui'
@@ -150,6 +154,9 @@ function PaletteContent({
   const setExportOpen = useUiStore((state) => state.setExportOpen)
   const undoLast = useUndoStore((state) => state.undoLast)
   const startNewTask = useStartNewTask()
+  const update = updateAction(useUpdateState())
+  const { data: autoCheck = true } = useUpdateAutoCheck()
+  const { mutate: setAutoCheck } = useSetUpdateAutoCheck()
   const { mutate: setTheme } = useSetThemePreference()
   const { mutate: setListMode } = useSetListViewMode()
   const { mutate: setSmartMode } = useSetSmartViewMode()
@@ -188,6 +195,17 @@ function PaletteContent({
           icon: FileDown,
           shortcut: 'Ctrl+E',
           run: () => setExportOpen(true)
+        },
+        ...(update.run
+          ? [{ id: 'update', label: update.label, icon: update.icon, run: update.run }]
+          : []),
+        {
+          id: 'update-auto',
+          label: autoCheck
+            ? 'Desligar verificação automática de atualizações'
+            : 'Ligar verificação automática de atualizações',
+          icon: RefreshCw,
+          run: () => setAutoCheck(!autoCheck)
         }
       ]
     },

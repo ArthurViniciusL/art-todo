@@ -30,11 +30,12 @@ Packaging: `electron-builder.yml` (Linux `deb` target). Publishing: `.github/wor
    pnpm version <patch|minor|major> --no-git-tag-version
    ```
    Commit `chore: release v<version>` on a branch and open a PR, or commit on main only if the user says so.
-5. **Tag and push only after the user confirms.** Publishing a release is public.
+5. **Release notes must end with a `SHA-256: <hex>` line** (from `sha256sum dist/art-todo_<version>_amd64.deb`). The in-app updater reads it to verify the download and ignores a release without it (ADR-0004).
+6. **Tag and push only after the user confirms.** Publishing a release is public.
    ```bash
    git tag v<version> && git push origin v<version>
    ```
-6. **Check the workflow:** `gh run list --workflow release.yml --limit 1`. Then `gh release view v<version>` and confirm the `.deb` is attached.
+7. **Check the workflow:** `gh run list --workflow release.yml --limit 1`. Then `gh release view v<version>` and confirm the `.deb` is attached.
 
 ## Gotchas
 

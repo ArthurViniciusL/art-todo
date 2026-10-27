@@ -47,6 +47,10 @@ export function optionalText(value: unknown, what = 'text'): string | undefined 
   return value === undefined ? undefined : text(value, what)
 }
 
+export function boolean(value: unknown, what = 'flag'): boolean {
+  return typeof value === 'boolean' ? value : fail(what, value)
+}
+
 export function theme(value: unknown): ThemePreference {
   return isThemePreference(value) ? value : fail('theme', value)
 }

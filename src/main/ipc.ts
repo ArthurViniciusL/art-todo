@@ -8,11 +8,15 @@ import type { SettingsRepository } from './db/repositories/settings'
 import type { TasksRepository } from './db/repositories/tasks'
 import { copyText, saveMarkdown } from './export'
 import { applyTheme, storedTheme, THEME_KEY } from './theme'
+import type { Updater } from './updates'
+
+export const UPDATE_AUTO_CHECK_KEY = 'updates:autoCheck'
 
 interface Repositories {
   lists: ListsRepository
   tasks: TasksRepository
   settings: SettingsRepository
+  updater: Updater
 }
 
 /** Handlers get raw renderer arguments; each one validates before touching the database. */
@@ -22,7 +26,7 @@ type Handlers = {
   ) => ReturnType<IpcContract[C]> | Promise<ReturnType<IpcContract[C]>>
 }
 
-export function registerIpcHandlers({ lists, tasks, settings }: Repositories): void {
+export function registerIpcHandlers({ lists, tasks, settings, updater }: Repositories): void {
   const handlers: Handlers = {
     'settings:getTheme': () => storedTheme(settings),
     'settings:setTheme': (preference) => {
@@ -53,6 +57,10 @@ export function registerIpcHandlers({ lists, tasks, settings }: Repositories): v
       }
     },
     'settings:setListSort': (sort) => settings.set('listSort', v.listSort(sort)),
+    'settings:getUpdateAutoCheck': () =>
+      settings.get<unknown>(UPDATE_AUTO_CHECK_KEY, true) !== false,
+    'settings:setUpdateAutoCheck': (enabled) =>
+      settings.set(UPDATE_AUTO_CHECK_KEY, v.boolean(enabled, 'auto check')),
 
     'lists:getAll': () => lists.getAll(),
     'lists:create': (name) => lists.create(v.optionalText(name, 'name')),
@@ -69,6 +77,12 @@ export function registerIpcHandlers({ lists, tasks, settings }: Repositories): v
     'tasks:search': (query) => tasks.search(v.text(query, 'query')),
     'tasks:remove': (id) => tasks.remove(v.id(id)),
     'tasks:restore': (task) => tasks.restore(v.task(task)),
+
+    'updates:getState': () => updater.getState(),
+    // Progress arrives through the updates:state event, so these resolve right away.
+    'updates:check': () => void updater.check(),
+    'updates:download': () => void updater.download(),
+    'updates:install': () => void updater.install(),
 
     'export:saveMarkdown': (title, content) =>
       saveMarkdown(v.text(title, 'title'), v.text(content, 'content')),
