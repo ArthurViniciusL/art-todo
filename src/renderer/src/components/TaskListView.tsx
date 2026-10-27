@@ -1,6 +1,5 @@
-import { Disclosure } from '@heroui/react'
-import { CircleCheck } from 'lucide-react'
 import type { List, Task } from '../../../shared/domain'
+import { newestDoneFirst, splitDone } from '../../../shared/ordering'
 import { useTasksByList } from '../hooks/queries'
 import { useViewMode } from '../hooks/useViewMode'
 import { useUiStore } from '../stores/ui'
@@ -11,6 +10,7 @@ import { TaskBoard } from './TaskBoard'
 import { TaskContextMenu } from './TaskContextMenu'
 import { TaskEditorModal } from './TaskEditorModal'
 import { TaskGrid } from './TaskGrid'
+import { EmptyTasks, TaskSection } from './TaskSection'
 import { ViewModeSwitcher } from './ViewModeSwitcher'
 
 const byPosition = (a: Task, b: Task): number => a.position - b.position
@@ -20,10 +20,7 @@ export function TaskListView({ list }: { list: List }): React.JSX.Element {
   const recentlyDone = useUiStore((state) => state.recentlyDone)
   const [mode, setMode] = useViewMode({ list })
 
-  const active = tasks.filter((task) => task.status !== 'done' || recentlyDone.has(task.id))
-  const done = tasks
-    .filter((task) => task.status === 'done' && !recentlyDone.has(task.id))
-    .sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0))
+  const { active, done } = splitDone(tasks, recentlyDone)
   const layout = mode === 'cards' ? 'cards' : 'list'
 
   return (
@@ -55,28 +52,12 @@ export function TaskListView({ list }: { list: List }): React.JSX.Element {
               <QuickAdd defaults={{ listId: list.id }} />
               <TaskGrid label="Tarefas" tasks={active} layout={layout} isReorderable />
 
-              {tasks.length === 0 && (
-                <div className="flex flex-col items-center gap-3 py-24 text-center">
-                  <CircleCheck className="size-10 text-accent-text" strokeWidth={1.5} aria-hidden />
-                  <p className="text-base font-semibold">Nada por aqui ainda</p>
-                  <p className="max-w-xs text-sm text-muted">
-                    Escreva acima e pressione Enter para criar uma tarefa.
-                  </p>
-                </div>
-              )}
+              {tasks.length === 0 && <EmptyTasks />}
 
               {done.length > 0 && (
-                <Disclosure className="mt-4" defaultExpanded>
-                  <Disclosure.Heading>
-                    <Disclosure.Trigger className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold uppercase tracking-wide text-muted outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                      <Disclosure.Indicator />
-                      Concluídas · {done.length}
-                    </Disclosure.Trigger>
-                  </Disclosure.Heading>
-                  <Disclosure.Content>
-                    <TaskGrid label="Concluídas" tasks={done} layout={layout} />
-                  </Disclosure.Content>
-                </Disclosure>
+                <TaskSection label="Concluídas" count={done.length} className="mt-4">
+                  <TaskGrid label="Concluídas" tasks={done} layout={layout} />
+                </TaskSection>
               )}
             </>
           )}
@@ -89,9 +70,7 @@ export function TaskListView({ list }: { list: List }): React.JSX.Element {
           title: list.name,
           mode,
           groups: [{ tasks: tasks.filter((task) => task.status !== 'done') }],
-          done: tasks
-            .filter((task) => task.status === 'done')
-            .sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0))
+          done: tasks.filter((task) => task.status === 'done').sort(newestDoneFirst)
         }}
       />
     </>

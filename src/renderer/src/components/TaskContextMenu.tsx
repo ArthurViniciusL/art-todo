@@ -27,10 +27,12 @@ function OpenTaskContextMenu({
 }): React.JSX.Element {
   const setMenu = useUiStore((state) => state.setTaskContextMenu)
   const openTask = useUiStore((state) => state.openTask)
+  const focusMovedTask = useUiStore((state) => state.focusMovedTask)
   const { data: lists = [] } = useLists()
   const { moveToList, removeTask } = useTaskActions()
-  // In a list, a task moved to another list leaves the view; in Hoje / Próximos it stays.
-  const isSmartView = useUiStore((state) => state.selection?.kind === 'view')
+  // In a list, a task moved to another list leaves the view; in the Inbox and the smart views
+  // it stays (the Inbox shows every list).
+  const keepsMovedTask = useUiStore((state) => state.selection?.kind !== 'list')
   const targets = lists.filter((list) => list.id !== task.listId)
   // Set when an item ran, so the close that follows does not refocus the row again.
   const hasActed = useRef(false)
@@ -98,7 +100,10 @@ function OpenTaskContextMenu({
                 aria-label="Mover para lista"
                 onAction={(key) => {
                   const list = targets.find((item) => String(item.id) === key)
-                  if (list) leave(() => moveToList(task, list), !isSmartView)
+                  if (!list) return
+                  // In the Inbox the row moves to another section's grid: focus it there.
+                  if (keepsMovedTask) focusMovedTask({ taskId: task.id, listId: list.id })
+                  leave(() => moveToList(task, list), !keepsMovedTask)
                 }}
               >
                 {targets.map((list) => (

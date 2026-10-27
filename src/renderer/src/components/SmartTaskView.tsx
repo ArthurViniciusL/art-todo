@@ -6,6 +6,7 @@ import {
   type TaskGroup
 } from '../../../shared/dates'
 import type { Task } from '../../../shared/domain'
+import { newestDoneFirst } from '../../../shared/ordering'
 import { useDueTasks, useLists } from '../hooks/queries'
 import { useToday } from '../hooks/useToday'
 import { useViewMode } from '../hooks/useViewMode'
@@ -136,9 +137,7 @@ export function SmartTaskView({ view }: { view: SmartView }): React.JSX.Element 
           groups: (view === 'today' ? groupToday(open, today) : groupUpcoming(open, today)).map(
             (group) => ({ heading: groupHeading(group, today), tasks: group.tasks })
           ),
-          done: tasks
-            .filter((task) => task.status === 'done' && inView(task))
-            .sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0))
+          done: tasks.filter((task) => task.status === 'done' && inView(task)).sort(newestDoneFirst)
         }}
       />
     </>

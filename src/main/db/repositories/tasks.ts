@@ -69,6 +69,11 @@ export function createTasksRepository(db: Db) {
   return {
     getById,
 
+    /** Every task of every list, in list order (position inside each list). */
+    getAll(): Task[] {
+      return db.select().from(tasks).orderBy(asc(tasks.listId), asc(tasks.position)).all()
+    },
+
     getByList(listId: number): Task[] {
       return db
         .select()

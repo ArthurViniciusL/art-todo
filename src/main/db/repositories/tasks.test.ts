@@ -42,6 +42,19 @@ describe('tasks repository', () => {
     expect(tasks.getByList(inboxId).map((task) => task.title)).toEqual(['a', 'b'])
   })
 
+  it('returns every list’s tasks, grouped by list in position order', () => {
+    tasks.create({ listId: otherListId, title: 'x' })
+    tasks.create({ listId: inboxId, title: 'a' })
+    tasks.create({ listId: otherListId, title: 'y' })
+    tasks.create({ listId: inboxId, title: 'b' })
+    expect(tasks.getAll().map((task) => [task.listId, task.title])).toEqual([
+      [inboxId, 'a'],
+      [inboxId, 'b'],
+      [otherListId, 'x'],
+      [otherListId, 'y']
+    ])
+  })
+
   it('sets and clears completedAt with the done status', () => {
     const task = tasks.create({ listId: inboxId, title: 'a' })
     expect(tasks.update(task.id, { status: 'doing' }, 2000).completedAt).toBeNull()

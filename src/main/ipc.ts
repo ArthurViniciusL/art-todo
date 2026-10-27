@@ -69,6 +69,7 @@ export function registerIpcHandlers({ lists, tasks, settings, updater }: Reposit
     'lists:move': (id, target) => lists.move(v.id(id), v.listMove(target)),
     'lists:remove': (id, mode) => lists.remove(v.id(id), v.listDeleteMode(mode)),
 
+    'tasks:getAll': () => tasks.getAll(),
     'tasks:getByList': (listId) => tasks.getByList(v.id(listId)),
     'tasks:getDue': (until, since) => tasks.getDue(v.isoDate(until), v.timestamp(since)),
     'tasks:create': (input) => tasks.create(v.newTask(input)),

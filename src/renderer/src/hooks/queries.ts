@@ -24,6 +24,7 @@ export const queryKeys = {
   updateState: ['updates', 'state'] as const,
   lists: ['lists'] as const,
   tasks: ['tasks'] as const,
+  tasksAll: ['tasks', 'all'] as const,
   tasksByList: (listId: number) => ['tasks', 'list', listId] as const,
   tasksDue: (until: string, completedSince: number) =>
     ['tasks', 'due', until, completedSince] as const,
@@ -181,6 +182,11 @@ export function useTasksByList(listId: number | undefined) {
     queryFn: () => invoke('tasks:getByList', listId as number),
     enabled: listId !== undefined
   })
+}
+
+/** Every task, for the Inbox overview. */
+export function useAllTasks() {
+  return useQuery({ queryKey: queryKeys.tasksAll, queryFn: () => invoke('tasks:getAll') })
 }
 
 /** Due tasks for the smart views; see TasksRepository.getDue. */

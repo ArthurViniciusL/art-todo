@@ -2,6 +2,7 @@ import { Button } from '@heroui/react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { TASK_STATUSES, type NewTask, type Task, type TaskStatus } from '../../../shared/domain'
+import { newestDoneFirst } from '../../../shared/ordering'
 import { STATUS_META } from '../task-status'
 import { QuickAdd } from './QuickAdd'
 import { TaskGrid } from './TaskGrid'
@@ -17,8 +18,6 @@ interface TaskBoardProps {
   /** Show a "Nova tarefa" field at the top of the A fazer column, creating tasks with these. */
   newTaskDefaults?: Omit<NewTask, 'title'>
 }
-
-const newestDoneFirst = (a: Task, b: Task): number => (b.completedAt ?? 0) - (a.completedAt ?? 0)
 
 /** Three columns: A fazer, Fazendo, Feito. The Feito column can be collapsed. */
 export function TaskBoard({

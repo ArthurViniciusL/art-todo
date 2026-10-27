@@ -1,4 +1,4 @@
-import type { KeyboardEvent, MouseEvent } from 'react'
+import { useEffect, useRef, type KeyboardEvent, type MouseEvent } from 'react'
 import {
   DropIndicator,
   GridList,
@@ -13,7 +13,7 @@ import type { Task, TaskMove, TaskStatus } from '../../../shared/domain'
 import { useUpdateTask } from '../hooks/queries'
 import { useTaskActions } from '../hooks/useTaskActions'
 import { neighborIds } from '../lib/reorder'
-import { focusSibling } from '../lib/task-focus'
+import { focusSibling, siblingRow } from '../lib/task-focus'
 import { useUiStore } from '../stores/ui'
 import { TaskCard } from './TaskCard'
 import { TaskRow, type TaskRowOptions } from './TaskRow'
@@ -121,6 +121,31 @@ export function TaskGrid({
   const openTask = useUiStore((state) => state.openTask)
   const renameTask = useUiStore((state) => state.renameTask)
   const setContextMenu = useUiStore((state) => state.setTaskContextMenu)
+  const movedTaskFocus = useUiStore((state) => state.movedTaskFocus)
+  const focusMovedTask = useUiStore((state) => state.focusMovedTask)
+
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // A task moved to another list from this view: focus its row once it renders in that list.
+  // React Aria adds the row a render after `tasks` changes, so wait a few frames for it.
+  useEffect(() => {
+    if (!movedTaskFocus) return
+    const { taskId, listId } = movedTaskFocus
+    if (!tasks.some((task) => task.id === taskId && task.listId === listId)) return
+    let frame = 0
+    let tries = 10
+    const tryFocus = (): void => {
+      const row = containerRef.current?.querySelector<HTMLElement>(
+        `[role=row][data-key="${taskId}"]`
+      )
+      if (row) {
+        row.focus()
+        focusMovedTask(null)
+      } else if (--tries > 0) frame = requestAnimationFrame(tryFocus)
+    }
+    tryFocus()
+    return () => cancelAnimationFrame(frame)
+  }, [tasks, movedTaskFocus, focusMovedTask])
   const { mutate: update } = useUpdateTask()
 
   const taskOfRow = (row: HTMLElement | null): Task | undefined =>
@@ -156,14 +181,19 @@ export function TaskGrid({
       removeTask(task)
     } else if (event.key === 'j' && plain) focusSibling(row, 1)
     else if (event.key === 'k' && plain) focusSibling(row, -1)
-    else return
+    else if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && plain) {
+      // React Aria moves inside the grid; only a step into another grid (Inbox) is ours.
+      const next = siblingRow(row, event.key === 'ArrowDown' ? 1 : -1)
+      if (!next || next.closest('[role=grid]') === row.closest('[role=grid]')) return
+      next.focus()
+    } else return
 
     event.preventDefault()
     event.stopPropagation()
   }
 
   return (
-    <div onKeyDownCapture={onKeyDownCapture} onContextMenu={onContextMenu}>
+    <div ref={containerRef} onKeyDownCapture={onKeyDownCapture} onContextMenu={onContextMenu}>
       <GridList
         aria-label={label}
         items={tasks}

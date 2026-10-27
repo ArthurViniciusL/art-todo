@@ -37,6 +37,7 @@ export interface IpcContract {
   'lists:move': (id: number, target: ListMove) => List
   'lists:remove': (id: number, mode: ListDeleteMode) => void
 
+  'tasks:getAll': () => Task[]
   'tasks:getByList': (listId: number) => Task[]
   'tasks:getDue': (until: string, completedSince: number) => Task[]
   'tasks:create': (input: NewTask) => Task
@@ -77,6 +78,7 @@ export const IPC_CHANNELS = [
   'lists:setViewMode',
   'lists:move',
   'lists:remove',
+  'tasks:getAll',
   'tasks:getByList',
   'tasks:getDue',
   'tasks:create',
