@@ -18,9 +18,10 @@ export function DueLabel({ task, timeOnly = false }: DueLabelProps): React.JSX.E
   )
   if (parts.length === 0) return null
 
+  // `relative` keeps the sr-only text inside the row, so scroll areas clip it.
   return (
     <span
-      className={`flex shrink-0 items-center gap-1 text-xs ${isOverdue ? 'text-priority-high' : 'text-muted'}`}
+      className={`relative flex shrink-0 items-center gap-1 text-xs ${isOverdue ? 'text-priority-high' : 'text-muted'}`}
     >
       {!timeOnly && <CalendarDays className="size-3.5" aria-hidden />}
       <span>{parts.join(' · ')}</span>
