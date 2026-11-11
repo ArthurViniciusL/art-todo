@@ -2,7 +2,7 @@ import { toast } from '@heroui/react'
 import { MutationCache, QueryClient } from '@tanstack/react-query'
 
 // Electron prefixes errors thrown in IPC handlers; keep only the message.
-function errorMessage(error: unknown): string {
+export function errorMessage(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error)
   return message.replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 }

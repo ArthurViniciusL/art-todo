@@ -18,6 +18,7 @@ import { useUiStore } from '../stores/ui'
 import { SMART_VIEWS } from '../views'
 import { AccentPicker } from './AccentPicker'
 import { DeleteListDialog } from './DeleteListDialog'
+import { ImportDialog } from './ImportDialog'
 import { InlineNameInput } from './InlineNameInput'
 import { SidebarItem } from './SidebarItem'
 import { SortableListItem } from './SortableListItem'
@@ -48,6 +49,7 @@ export function Sidebar({ variant = 'full' }: { variant?: SidebarVariant }): Rea
   const setIsCreating = useUiStore((state) => state.setCreatingList)
   const [renamingId, setRenamingId] = useState<number | null>(null)
   const [deleting, setDeleting] = useState<List | null>(null)
+  const [importing, setImporting] = useState<List | null>(null)
 
   // Naming a new list needs room: leave the rail first.
   useEffect(() => {
@@ -244,6 +246,7 @@ export function Sidebar({ variant = 'full' }: { variant?: SidebarVariant }): Rea
                             if (key === 'rename') setRenamingId(list.id)
                             if (key === 'up') moveStep(list, -1)
                             if (key === 'down') moveStep(list, 1)
+                            if (key === 'import') setImporting(list)
                             if (key === 'delete') setDeleting(list)
                           }}
                           disabledKeys={[
@@ -264,6 +267,9 @@ export function Sidebar({ variant = 'full' }: { variant?: SidebarVariant }): Rea
                               Mover para baixo
                             </Dropdown.Item>
                           )}
+                          <Dropdown.Item id="import" textValue="Importar tarefas">
+                            Importar tarefas…
+                          </Dropdown.Item>
                           <Dropdown.Item id="delete" textValue="Excluir" variant="danger">
                             Excluir…
                           </Dropdown.Item>
@@ -310,6 +316,7 @@ export function Sidebar({ variant = 'full' }: { variant?: SidebarVariant }): Rea
       </footer>
 
       <DeleteListDialog list={deleting} onClose={() => setDeleting(null)} />
+      <ImportDialog list={importing} onClose={() => setImporting(null)} />
     </aside>
   )
 }

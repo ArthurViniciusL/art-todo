@@ -47,8 +47,8 @@ test('previews the list as GFM and copies it to the clipboard', async () => {
     [
       '# Mercado',
       '',
-      '- [ ] Pão — !alta',
-      '- [ ] Leite — ⏳ fazendo · 📅 2026-10-25',
+      '- [ ] Pão | priority: high',
+      '- [ ] Leite | status: doing | due: 2026-10-25',
       '  integral',
       '',
       '## Concluídas',
@@ -65,7 +65,7 @@ test('previews the list as GFM and copies it to the clipboard', async () => {
   await expect(page.getByRole('dialog', { name: 'Exportar Markdown' })).toBeHidden()
   const copied = await app.evaluate(({ clipboard }) => clipboard.readText())
   expect(copied).toBe(
-    '# Mercado\n\n- [ ] Pão — !alta\n- [ ] Leite — ⏳ fazendo · 📅 2026-10-25\n  integral\n'
+    '# Mercado\n\n- [ ] Pão | priority: high\n- [ ] Leite | status: doing | due: 2026-10-25\n  integral\n'
   )
 })
 
@@ -79,7 +79,7 @@ test('groups by status when exporting from Colunas', async () => {
   await page.getByRole('button', { name: /Exportar Markdown/ }).click()
   await expect(page.getByRole('switch', { name: 'Agrupar por status' })).toBeChecked()
   await expect(preview()).toHaveText(
-    '# Projeto\n\n## A fazer\n\n- [ ] Ideia\n\n## Fazendo\n\n- [ ] Em curso — ⏳ fazendo\n\n## Feito\n\n- [x] Pronto\n'
+    '# Projeto\n\n## A fazer\n\n- [ ] Ideia\n\n## Fazendo\n\n- [ ] Em curso | status: doing\n\n## Feito\n\n- [x] Pronto\n'
   )
 })
 
@@ -123,6 +123,6 @@ test('exports the Hoje view with its groups', async () => {
     .click()
   await page.keyboard.press('Control+e')
   await expect(preview()).toHaveText(
-    `# Hoje\n\n## Atrasadas\n\n- [ ] Atrasada — 📅 2020-01-01\n\n## Hoje\n\n- [ ] Hoje mesmo — 📅 ${today}\n`
+    `# Hoje\n\n## Atrasadas\n\n- [ ] Atrasada | due: 2020-01-01\n\n## Hoje\n\n- [ ] Hoje mesmo | due: ${today}\n`
   )
 })

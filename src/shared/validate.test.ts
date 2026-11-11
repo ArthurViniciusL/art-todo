@@ -48,3 +48,15 @@ describe('validate', () => {
     expect(() => v.newTask({ title: 'a' })).toThrow()
   })
 })
+
+describe('importedTasks', () => {
+  it('keeps known fields and drops listId', () => {
+    expect(v.importedTasks([{ title: 'a', listId: 9, status: 'done', extra: 1 }])).toEqual([
+      { title: 'a', status: 'done' }
+    ])
+  })
+
+  it('rejects more than the import limit', () => {
+    expect(() => v.importedTasks(Array.from({ length: 1001 }, () => ({ title: 'a' })))).toThrow()
+  })
+})

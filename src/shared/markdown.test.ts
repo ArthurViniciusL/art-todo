@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Task } from './domain'
-import { markdownFileName, taskToMarkdown, toMarkdown } from './markdown'
+import { markdownFileName, parseMarkdownTasks, taskToMarkdown, toMarkdown } from './markdown'
 
 let nextId = 1
 function task(overrides: Partial<Task>): Task {
@@ -36,7 +36,7 @@ describe('taskToMarkdown', () => {
       taskToMarkdown(
         task({ title: 'Relatório', status: 'doing', dueDate: '2026-10-25', priority: 3 })
       )
-    ).toBe('- [ ] Relatório — ⏳ fazendo · 📅 2026-10-25 · !alta')
+    ).toBe('- [ ] Relatório | status: doing | due: 2026-10-25 | priority: high')
   })
 
   it('includes the time with the date', () => {
@@ -44,12 +44,12 @@ describe('taskToMarkdown', () => {
       taskToMarkdown(
         task({ title: 'Reunião', dueDate: '2026-10-25', dueTime: '09:30', priority: 1 })
       )
-    ).toBe('- [ ] Reunião — 📅 2026-10-25 09:30 · !baixa')
+    ).toBe('- [ ] Reunião | due: 2026-10-25 09:30 | priority: low')
   })
 
   it('tags critical priority', () => {
     expect(taskToMarkdown(task({ title: 'Servidor', priority: 4 }))).toBe(
-      '- [ ] Servidor — !crítico'
+      '- [ ] Servidor | priority: critical'
     )
   })
 
@@ -87,5 +87,68 @@ describe('markdownFileName', () => {
 
   it('falls back for blank names', () => {
     expect(markdownFileName('  ')).toBe('tarefas.md')
+  })
+})
+
+describe('parseMarkdownTasks', () => {
+  it('reads checkboxes, plain bullets and fields', () => {
+    const { tasks, ignoredLines } = parseMarkdownTasks(
+      [
+        '# Mercado',
+        '## Seção',
+        '- [ ] Comprar pão',
+        '- [x] Pagar luz | due: 2026-10-20 09:30',
+        '* Relatório | Status: DOING | priority: Medium',
+        'texto solto'
+      ].join('\n')
+    )
+    expect(ignoredLines).toBe(1)
+    expect(tasks).toEqual([
+      { title: 'Comprar pão', notes: '', status: 'todo' },
+      { title: 'Pagar luz', notes: '', status: 'done', dueDate: '2026-10-20', dueTime: '09:30' },
+      { title: 'Relatório', notes: '', status: 'doing', priority: 2 }
+    ])
+  })
+
+  it('lets status win over the checkbox', () => {
+    expect(parseMarkdownTasks('- [x] a | status: todo').tasks[0].status).toBe('todo')
+  })
+
+  it('keeps invalid or unknown fields in the title', () => {
+    const { tasks } = parseMarkdownTasks('- [ ] A | B | due: 2026-02-30 | priority: high')
+    expect(tasks[0]).toMatchObject({ title: 'A | B | due: 2026-02-30', priority: 3 })
+  })
+
+  it('turns indented lines and nested items into notes', () => {
+    const { tasks } = parseMarkdownTasks('- [ ] Viagem\n  Passagens\n\n  - hotel\n- [ ] Outra')
+    expect(tasks.map((t) => t.notes)).toEqual(['Passagens\n\n- hotel', ''])
+  })
+
+  it('round-trips the export', () => {
+    const original = [
+      task({ title: 'a', status: 'doing', dueDate: '2026-10-25', dueTime: '09:30', priority: 4 }),
+      task({ title: 'b', status: 'done', notes: 'x\n\ny' }),
+      task({ title: 'c | d' })
+    ]
+    const { tasks } = parseMarkdownTasks(
+      toMarkdown({ title: 'L', sections: [{ heading: 'A fazer', tasks: original }] })
+    )
+    expect(tasks).toMatchObject(
+      original.map(({ title, notes, status, priority, dueDate, dueTime }) => ({
+        title,
+        notes,
+        status,
+        ...(priority ? { priority } : {}),
+        ...(dueDate ? { dueDate, dueTime } : {})
+      }))
+    )
+  })
+
+  it('skips a BOM, empty checkboxes and keeps a bare pipe in the title', () => {
+    const { tasks, ignoredLines } = parseMarkdownTasks(
+      '\uFEFF- [ ] a\n- [ ]\n- [ ] x|priority: high'
+    )
+    expect(tasks.map((t) => t.title)).toEqual(['a', 'x|priority: high'])
+    expect(ignoredLines).toBe(1)
   })
 })

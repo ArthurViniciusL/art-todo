@@ -44,7 +44,7 @@ Construir um app desktop de todo list, local e offline, empacotado com Electron 
 10. Atalhos: `N` nova tarefa · `Enter` editar · `Espaço` Feito · `S` ciclar status · `↑↓`/`J K` navegar · `Del` excluir · `Ctrl+K` palette · `Ctrl+1..9` trocar de lista · `T` definir "hoje" · `Ctrl+Z` desfazer.
 11. Tema claro/escuro: segue o sistema, com override manual.
 12. **Export Markdown** da lista atual ou da visão atual. O destino é salvar `.md` com diálogo e/ou copiar para o clipboard.
-    - Formato GFM: `# Nome`, `- [x]`/`- [ ]` + título + sufixo `— ⏳ fazendo · 📅 2026-10-25 · !alta`. As notas vão indentadas abaixo da tarefa.
+    - Formato GFM: `# Nome`, `- [x]`/`- [ ]` + título + campos separados por ` | ` em inglês: `status: doing | due: 2026-10-25 09:30 | priority: high`. Sem emojis. O mesmo formato serve para o import (item 20). As notas vão indentadas abaixo da tarefa.
     - Uma opção inclui ou omite as concluídas. A partir do modo Colunas, há a opção de agrupar por `## A fazer / ## Fazendo / ## Feito`.
     - O nome do arquivo é sanitizado (`/` e `:` viram `-`). O título `#` mantém o nome original.
 13. Janela: instância única, lembra tamanho e posição, e fechar encerra o app.
@@ -60,6 +60,12 @@ Construir um app desktop de todo list, local e offline, empacotado com Electron 
     - Em Colunas, não há seções: a linha mostra o nome da lista, arrastar entre colunas muda o status e não há reordenação dentro da coluna.
     - O campo "Nova tarefa" cria na Entrada. `J K` e `↑↓` atravessam as seções e pulam as recolhidas. `Tab` chega ao cabeçalho da seção e `Enter` recolhe ou expande.
     - Para ver uma lista só, o usuário a seleciona na sidebar. O export usa `# Entrada` e um `## <lista>` por seção.
+20. **Import Markdown** para uma lista, pelo menu "⋯" da lista ("Importar tarefas…").
+    - Modal: título, descrição, botão "Selecionar arquivo" (só `.md`/`.markdown`, até 1 MB) e link "Copiar template para IA", que abre outro modal com um prompt pronto para copiar.
+    - Formato igual ao do export. `- [ ]`, `- [x]`, `- ` ou `* ` abrem uma tarefa. Campos `status` (todo/doing/done), `due` (`AAAA-MM-DD [HH:MM]`) e `priority` (none/low/medium/high/critical) vêm depois de ` | `; `status` vence o checkbox. Campo inválido fica no título.
+    - Linhas indentadas viram notas. Cabeçalhos são ignorados. Outras linhas são contadas como ignoradas.
+    - Prévia antes de gravar: total por status, linhas ignoradas, títulos que já existem na lista (importados mesmo assim). Máximo de 1000 tarefas.
+    - As tarefas entram no fim da lista, na ordem do arquivo, numa única transação.
 
 **v2 (fora do escopo agora):** tags, subtarefas, recorrência, backup/import JSON, tray, pastas de listas, quick-add global.
 

@@ -3,6 +3,7 @@ import type {
   ListDeleteMode,
   ListMove,
   ListSort,
+  ListlessNewTask,
   NewTask,
   SmartView,
   Task,
@@ -46,6 +47,8 @@ export interface IpcContract {
   'tasks:search': (query: string) => Task[]
   'tasks:remove': (id: number) => Task
   'tasks:restore': (task: Task) => Task
+  /** Adds parsed tasks to the end of a list; returns the created tasks. */
+  'tasks:importMany': (listId: number, tasks: ListlessNewTask[]) => Task[]
 
   'updates:getState': () => UpdateState
   'updates:check': () => void
@@ -56,6 +59,8 @@ export interface IpcContract {
   /** Opens a save dialog for `title`.md; false when cancelled. */
   'export:saveMarkdown': (title: string, content: string) => boolean
   'export:copy': (text: string) => void
+  /** Opens a Markdown file; null when cancelled. Throws when the file is over IMPORT_MAX_BYTES. */
+  'import:pickMarkdown': () => { fileName: string; content: string } | null
 }
 
 export type IpcChannel = keyof IpcContract
@@ -87,12 +92,14 @@ export const IPC_CHANNELS = [
   'tasks:search',
   'tasks:remove',
   'tasks:restore',
+  'tasks:importMany',
   'updates:getState',
   'updates:check',
   'updates:download',
   'updates:install',
   'export:saveMarkdown',
-  'export:copy'
+  'export:copy',
+  'import:pickMarkdown'
 ] as const satisfies readonly IpcChannel[]
 
 // Compile error if a channel is in the contract but missing from IPC_CHANNELS.
