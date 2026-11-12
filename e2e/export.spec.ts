@@ -69,14 +69,22 @@ test('previews the list as GFM and copies it to the clipboard', async () => {
   )
 })
 
-test('groups by status when exporting from Colunas', async () => {
+test('exports a list in Colunas from its menu without opening it', async () => {
   await seedList('Projeto', [
     { title: 'Ideia' },
     { title: 'Em curso', status: 'doing' },
     { title: 'Pronto', status: 'done' }
   ])
   await page.getByRole('radio', { name: 'Colunas' }).click()
-  await page.getByRole('button', { name: /Exportar Markdown/ }).click()
+  await expect(page.getByRole('button', { name: /Exportar Markdown/ })).toHaveCount(0)
+
+  await page
+    .getByRole('navigation', { name: 'Visões' })
+    .getByRole('button', { name: 'Entrada', exact: true })
+    .click()
+  await page.getByRole('button', { name: 'Opções da lista Projeto' }).click()
+  await page.getByRole('menuitem', { name: 'Exportar tarefas' }).click()
+  await expect(page.getByRole('heading', { level: 1, name: 'Entrada' })).toBeVisible()
   await expect(page.getByRole('switch', { name: 'Agrupar por status' })).toBeChecked()
   await expect(preview()).toHaveText(
     '# Projeto\n\n## todo\n\n- [ ] Ideia | status: todo\n\n## doing\n\n- [ ] Em curso | status: doing\n\n## done\n\n- [x] Pronto | status: done\n'

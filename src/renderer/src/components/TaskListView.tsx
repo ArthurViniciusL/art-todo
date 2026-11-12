@@ -1,10 +1,11 @@
 import type { List, Task } from '../../../shared/domain'
-import { newestDoneFirst, splitDone } from '../../../shared/ordering'
+import { splitDone } from '../../../shared/ordering'
 import { useTasksByList } from '../hooks/queries'
 import { useViewMode } from '../hooks/useViewMode'
+import { listExportSource } from '../lib/export-source'
 import { useUiStore } from '../stores/ui'
 import { ContentHeader } from './ContentHeader'
-import { ExportButton, ExportDialog } from './ExportDialog'
+import { ExportDialog } from './ExportDialog'
 import { QuickAdd } from './QuickAdd'
 import { TaskBoard } from './TaskBoard'
 import { TaskContextMenu } from './TaskContextMenu'
@@ -27,12 +28,7 @@ export function TaskListView({ list }: { list: List }): React.JSX.Element {
     <>
       <ContentHeader
         title={list.name}
-        actions={
-          <>
-            <ExportButton />
-            <ViewModeSwitcher value={mode} onChange={setMode} />
-          </>
-        }
+        actions={<ViewModeSwitcher value={mode} onChange={setMode} />}
       />
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 pb-10 sm:px-6">
         <div
@@ -65,14 +61,7 @@ export function TaskListView({ list }: { list: List }): React.JSX.Element {
       </div>
       <TaskEditorModal tasks={tasks} isLoaded={isSuccess} />
       <TaskContextMenu tasks={tasks} />
-      <ExportDialog
-        source={{
-          title: list.name,
-          mode,
-          groups: [{ tasks: tasks.filter((task) => task.status !== 'done') }],
-          done: tasks.filter((task) => task.status === 'done').sort(newestDoneFirst)
-        }}
-      />
+      <ExportDialog source={listExportSource(list, tasks)} />
     </>
   )
 }
