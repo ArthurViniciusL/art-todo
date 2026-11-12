@@ -12,6 +12,7 @@ import type {
   ViewMode
 } from '../../../shared/domain'
 import { positionBetween } from '../../../shared/ordering'
+import type { ImportedTask } from '../../../shared/markdown'
 import type { ThemePreference } from '../../../shared/theme'
 import { invoke } from '../lib/api'
 
@@ -198,7 +199,7 @@ export function useDueTasks(until: string, completedSince: number) {
 }
 
 /** Tasks can show up in several views, so every task mutation refreshes all task queries. */
-function useTaskMutation<A>(mutationFn: (args: A) => Promise<Task | void>) {
+function useTaskMutation<A, R extends Task | Task[] | void>(mutationFn: (args: A) => Promise<R>) {
   const client = useQueryClient()
   return useMutation({
     mutationFn,
@@ -237,4 +238,10 @@ export function useRemoveTask() {
 
 export function useRestoreTask() {
   return useTaskMutation((task: Task) => invoke('tasks:restore', task))
+}
+
+export function useImportTasks() {
+  return useTaskMutation(({ listId, tasks }: { listId: number; tasks: ImportedTask[] }) =>
+    invoke('tasks:importMany', listId, tasks)
+  )
 }

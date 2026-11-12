@@ -6,7 +6,7 @@ import * as v from '../shared/validate'
 import type { ListsRepository } from './db/repositories/lists'
 import type { SettingsRepository } from './db/repositories/settings'
 import type { TasksRepository } from './db/repositories/tasks'
-import { copyText, saveMarkdown } from './export'
+import { copyText, pickMarkdown, saveMarkdown } from './export'
 import { applyTheme, storedTheme, THEME_KEY } from './theme'
 import type { Updater } from './updates'
 
@@ -78,6 +78,7 @@ export function registerIpcHandlers({ lists, tasks, settings, updater }: Reposit
     'tasks:search': (query) => tasks.search(v.text(query, 'query')),
     'tasks:remove': (id) => tasks.remove(v.id(id)),
     'tasks:restore': (task) => tasks.restore(v.task(task)),
+    'tasks:importMany': (listId, items) => tasks.createMany(v.id(listId), v.importedTasks(items)),
 
     'updates:getState': () => updater.getState(),
     // Progress arrives through the updates:state event, so these resolve right away.
@@ -87,7 +88,8 @@ export function registerIpcHandlers({ lists, tasks, settings, updater }: Reposit
 
     'export:saveMarkdown': (title, content) =>
       saveMarkdown(v.text(title, 'title'), v.text(content, 'content')),
-    'export:copy': (text) => copyText(v.text(text, 'text'))
+    'export:copy': (text) => copyText(v.text(text, 'text')),
+    'import:pickMarkdown': () => pickMarkdown()
   }
 
   for (const [channel, handler] of Object.entries(handlers)) {

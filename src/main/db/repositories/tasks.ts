@@ -13,7 +13,7 @@ import {
   or,
   sql
 } from 'drizzle-orm'
-import type { NewTask, Task, TaskMove, TaskPatch } from '../../../shared/domain'
+import type { ListlessNewTask, NewTask, Task, TaskMove, TaskPatch } from '../../../shared/domain'
 import type { Db } from '../client'
 import { positionBetween } from '../../../shared/ordering'
 import { initialRemindedAt } from '../../../shared/reminders'
@@ -124,6 +124,16 @@ export function createTasksRepository(db: Db) {
         })
         .returning()
         .get()
+    },
+
+    /** Adds tasks at the end of a list, in order, in one transaction. */
+    createMany(listId: number, inputs: ListlessNewTask[], now = Date.now()): Task[] {
+      return db.transaction(() => {
+        if (!db.select({ id: lists.id }).from(lists).where(eq(lists.id, listId)).get()) {
+          throw new Error(`List ${listId} not found`)
+        }
+        return inputs.map((input) => this.create({ ...input, listId }, now))
+      })
     },
 
     update(id: number, patch: TaskPatch, now = Date.now()): Task {

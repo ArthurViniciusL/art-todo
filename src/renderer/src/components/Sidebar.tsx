@@ -1,12 +1,18 @@
 import { Button, Dropdown } from '@heroui/react'
 import {
+  ArrowDown,
+  ArrowUp,
   ArrowUpDown,
   Ellipsis,
+  FileDown,
+  FileUp,
   Hash,
   Inbox,
   PanelLeftClose,
   PanelLeftOpen,
+  Pencil,
   Plus,
+  Trash2,
   X
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -18,6 +24,8 @@ import { useUiStore } from '../stores/ui'
 import { SMART_VIEWS } from '../views'
 import { AccentPicker } from './AccentPicker'
 import { DeleteListDialog } from './DeleteListDialog'
+import { ListExportDialog } from './ExportDialog'
+import { ImportDialog } from './ImportDialog'
 import { InlineNameInput } from './InlineNameInput'
 import { SidebarItem } from './SidebarItem'
 import { SortableListItem } from './SortableListItem'
@@ -48,6 +56,8 @@ export function Sidebar({ variant = 'full' }: { variant?: SidebarVariant }): Rea
   const setIsCreating = useUiStore((state) => state.setCreatingList)
   const [renamingId, setRenamingId] = useState<number | null>(null)
   const [deleting, setDeleting] = useState<List | null>(null)
+  const [importing, setImporting] = useState<List | null>(null)
+  const [exporting, setExporting] = useState<List | null>(null)
 
   // Naming a new list needs room: leave the rail first.
   useEffect(() => {
@@ -244,6 +254,8 @@ export function Sidebar({ variant = 'full' }: { variant?: SidebarVariant }): Rea
                             if (key === 'rename') setRenamingId(list.id)
                             if (key === 'up') moveStep(list, -1)
                             if (key === 'down') moveStep(list, 1)
+                            if (key === 'import') setImporting(list)
+                            if (key === 'export') setExporting(list)
                             if (key === 'delete') setDeleting(list)
                           }}
                           disabledKeys={[
@@ -252,19 +264,31 @@ export function Sidebar({ variant = 'full' }: { variant?: SidebarVariant }): Rea
                           ]}
                         >
                           <Dropdown.Item id="rename" textValue="Renomear">
+                            <Pencil className="size-4 text-muted" aria-hidden />
                             Renomear
                           </Dropdown.Item>
                           {isManual && (
                             <Dropdown.Item id="up" textValue="Mover para cima">
+                              <ArrowUp className="size-4 text-muted" aria-hidden />
                               Mover para cima
                             </Dropdown.Item>
                           )}
                           {isManual && (
                             <Dropdown.Item id="down" textValue="Mover para baixo">
+                              <ArrowDown className="size-4 text-muted" aria-hidden />
                               Mover para baixo
                             </Dropdown.Item>
                           )}
+                          <Dropdown.Item id="import" textValue="Importar tarefas">
+                            <FileUp className="size-4 text-muted" aria-hidden />
+                            Importar tarefas…
+                          </Dropdown.Item>
+                          <Dropdown.Item id="export" textValue="Exportar tarefas">
+                            <FileDown className="size-4 text-muted" aria-hidden />
+                            Exportar tarefas…
+                          </Dropdown.Item>
                           <Dropdown.Item id="delete" textValue="Excluir" variant="danger">
+                            <Trash2 className="size-4" aria-hidden />
                             Excluir…
                           </Dropdown.Item>
                         </Dropdown.Menu>
@@ -310,6 +334,8 @@ export function Sidebar({ variant = 'full' }: { variant?: SidebarVariant }): Rea
       </footer>
 
       <DeleteListDialog list={deleting} onClose={() => setDeleting(null)} />
+      <ImportDialog list={importing} onClose={() => setImporting(null)} />
+      <ListExportDialog list={exporting} onClose={() => setExporting(null)} />
     </aside>
   )
 }

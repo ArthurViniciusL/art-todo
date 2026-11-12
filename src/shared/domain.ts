@@ -54,6 +54,14 @@ export interface NewTask {
   dueTime?: string | null
 }
 
+/** A new task before it is given a list (Markdown import). */
+export type ListlessNewTask = Omit<NewTask, 'listId'>
+
+/** Most tasks one import may add. */
+export const IMPORT_MAX_TASKS = 1000
+/** Largest file an import reads, in bytes. */
+export const IMPORT_MAX_BYTES = 1024 * 1024
+
 export type TaskPatch = Partial<
   Pick<Task, 'listId' | 'title' | 'notes' | 'status' | 'priority' | 'dueDate' | 'dueTime'>
 >

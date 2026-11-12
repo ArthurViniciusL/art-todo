@@ -13,7 +13,7 @@ import { useViewMode } from '../hooks/useViewMode'
 import { dayHeading } from '../lib/format-date'
 import { useUiStore, type SmartView } from '../stores/ui'
 import { ContentHeader } from './ContentHeader'
-import { ExportButton, ExportDialog } from './ExportDialog'
+import { ExportDialog } from './ExportDialog'
 import { QuickAdd } from './QuickAdd'
 import { TaskEditorModal } from './TaskEditorModal'
 import { TaskBoard } from './TaskBoard'
@@ -75,12 +75,7 @@ export function SmartTaskView({ view }: { view: SmartView }): React.JSX.Element 
     <>
       <ContentHeader
         title={copy.title}
-        actions={
-          <>
-            <ExportButton />
-            <ViewModeSwitcher value={mode} onChange={setMode} />
-          </>
-        }
+        actions={<ViewModeSwitcher value={mode} onChange={setMode} />}
       />
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 pb-10 sm:px-6">
         <div

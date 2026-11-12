@@ -1,10 +1,12 @@
 import {
+  IMPORT_MAX_TASKS,
   LIST_SORTS,
   PRIORITIES,
   SMART_VIEW_IDS,
   TASK_STATUSES,
   VIEW_MODES,
   type ListDeleteMode,
+  type ListlessNewTask,
   type ListMove,
   type ListSort,
   type NewTask,
@@ -17,6 +19,7 @@ import {
   type ViewMode
 } from './domain'
 import { isHexColor } from './color'
+import { isIsoDate, isTime } from './dates'
 import { isThemePreference, type ThemePreference } from './theme'
 
 /** Guards for values that cross the IPC boundary. Each throws on invalid input. */
@@ -29,9 +32,6 @@ function fail(what: string, value: unknown): never {
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
-
-const DATE_RE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/
-const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/
 
 export function id(value: unknown): number {
   return Number.isSafeInteger(value) && (value as number) > 0
@@ -92,19 +92,15 @@ function priority(value: unknown): Priority {
 }
 
 function nullableDate(value: unknown): string | null {
-  return value === null || (typeof value === 'string' && DATE_RE.test(value))
-    ? value
-    : fail('date', value)
+  return value === null || isIsoDate(value) ? value : fail('date', value)
 }
 
 function nullableTime(value: unknown): string | null {
-  return value === null || (typeof value === 'string' && TIME_RE.test(value))
-    ? value
-    : fail('time', value)
+  return value === null || isTime(value) ? value : fail('time', value)
 }
 
 export function isoDate(value: unknown): string {
-  return typeof value === 'string' && DATE_RE.test(value) ? value : fail('date', value)
+  return isIsoDate(value) ? value : fail('date', value)
 }
 
 export function timestamp(value: unknown): number {
@@ -166,4 +162,15 @@ export function task(value: unknown): Task {
     createdAt: timestamp(value.createdAt),
     updatedAt: timestamp(value.updatedAt)
   }
+}
+
+/** Tasks for `tasks:importMany`: at most IMPORT_MAX_TASKS, each a new task without a list. */
+export function importedTasks(value: unknown): ListlessNewTask[] {
+  if (!Array.isArray(value) || value.length > IMPORT_MAX_TASKS) fail('imported tasks', value)
+  return value.map((item) => {
+    if (!isObject(item)) fail('imported task', item)
+    const patch = taskPatch(item)
+    delete patch.listId
+    return { ...patch, title: text(item.title, 'title') }
+  })
 }

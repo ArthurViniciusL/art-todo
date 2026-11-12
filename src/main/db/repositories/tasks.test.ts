@@ -221,4 +221,22 @@ describe('tasks repository', () => {
       expect(tasks.update(task.id, { dueDate: null }, at(27, 12)).remindedAt).toBeNull()
     })
   })
+
+  it('creates many tasks at the end of a list, in order', () => {
+    tasks.create({ listId: otherListId, title: 'existing' })
+    const created = tasks.createMany(otherListId, [
+      { title: 'a', status: 'done' },
+      { title: 'b', priority: 3, dueDate: '2026-10-25', dueTime: '09:30' }
+    ])
+    expect(created.map((t) => [t.title, t.status, t.completedAt !== null])).toEqual([
+      ['a', 'done', true],
+      ['b', 'todo', false]
+    ])
+    expect(tasks.getByList(otherListId).map((t) => t.title)).toEqual(['existing', 'a', 'b'])
+  })
+
+  it('creates nothing when one imported task is invalid', () => {
+    expect(() => tasks.createMany(otherListId, [{ title: 'a' }, { title: ' ' }])).toThrow()
+    expect(tasks.getByList(otherListId)).toEqual([])
+  })
 })

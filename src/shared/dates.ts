@@ -1,5 +1,18 @@
 import type { Task } from './domain'
 
+const DATE_RE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/
+
+/** A real calendar day as `YYYY-MM-DD` (rejects 2026-02-30). */
+export function isIsoDate(value: unknown): value is string {
+  return typeof value === 'string' && DATE_RE.test(value) && toIsoDate(fromIsoDate(value)) === value
+}
+
+/** A time of day as `HH:MM`. */
+export function isTime(value: unknown): value is string {
+  return typeof value === 'string' && TIME_RE.test(value)
+}
+
 /** Local calendar day as `YYYY-MM-DD`. */
 export function toIsoDate(date: Date): string {
   const pad = (value: number): string => String(value).padStart(2, '0')

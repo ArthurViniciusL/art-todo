@@ -5,7 +5,7 @@ import { useOrderedLists } from '../hooks/useNavigation'
 import { useViewMode } from '../hooks/useViewMode'
 import { useUiStore } from '../stores/ui'
 import { ContentHeader } from './ContentHeader'
-import { ExportButton, ExportDialog } from './ExportDialog'
+import { ExportDialog } from './ExportDialog'
 import { QuickAdd } from './QuickAdd'
 import { TaskBoard } from './TaskBoard'
 import { TaskContextMenu } from './TaskContextMenu'
@@ -50,12 +50,7 @@ export function InboxView({ inbox }: { inbox: List }): React.JSX.Element {
     <>
       <ContentHeader
         title={inbox.name}
-        actions={
-          <>
-            <ExportButton />
-            <ViewModeSwitcher value={mode} onChange={setMode} />
-          </>
-        }
+        actions={<ViewModeSwitcher value={mode} onChange={setMode} />}
       />
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 pb-10 sm:px-6">
         <div
