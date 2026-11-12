@@ -6,7 +6,6 @@ import { toMarkdown, type MarkdownSection } from '../../../shared/markdown'
 import { useCompactLayout } from '../hooks/useCompactLayout'
 import { invoke } from '../lib/api'
 import { useUiStore } from '../stores/ui'
-import { STATUS_META } from '../task-status'
 
 export interface ExportSource {
   title: string
@@ -25,11 +24,11 @@ function buildSections(
   if (byStatus) {
     const open = groups.flatMap((group) => group.tasks)
     return TASK_STATUSES.filter((status) => includeDone || status !== 'done').map((status) => ({
-      heading: STATUS_META[status].label,
+      heading: status,
       tasks: status === 'done' ? done : open.filter((task) => task.status === status)
     }))
   }
-  return includeDone ? [...groups, { heading: 'Concluídas', tasks: done }] : groups
+  return includeDone ? [...groups, { heading: 'done', tasks: done }] : groups
 }
 
 function OptionSwitch({

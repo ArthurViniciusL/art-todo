@@ -47,13 +47,13 @@ test('previews the list as GFM and copies it to the clipboard', async () => {
     [
       '# Mercado',
       '',
-      '- [ ] Pão | priority: high',
+      '- [ ] Pão | status: todo | priority: high',
       '- [ ] Leite | status: doing | due: 2026-10-25',
       '  integral',
       '',
-      '## Concluídas',
+      '## done',
       '',
-      '- [x] Café',
+      '- [x] Café | status: done',
       ''
     ].join('\n')
   )
@@ -65,7 +65,7 @@ test('previews the list as GFM and copies it to the clipboard', async () => {
   await expect(page.getByRole('dialog', { name: 'Exportar Markdown' })).toBeHidden()
   const copied = await app.evaluate(({ clipboard }) => clipboard.readText())
   expect(copied).toBe(
-    '# Mercado\n\n- [ ] Pão | priority: high\n- [ ] Leite | status: doing | due: 2026-10-25\n  integral\n'
+    '# Mercado\n\n- [ ] Pão | status: todo | priority: high\n- [ ] Leite | status: doing | due: 2026-10-25\n  integral\n'
   )
 })
 
@@ -79,7 +79,7 @@ test('groups by status when exporting from Colunas', async () => {
   await page.getByRole('button', { name: /Exportar Markdown/ }).click()
   await expect(page.getByRole('switch', { name: 'Agrupar por status' })).toBeChecked()
   await expect(preview()).toHaveText(
-    '# Projeto\n\n## A fazer\n\n- [ ] Ideia\n\n## Fazendo\n\n- [ ] Em curso | status: doing\n\n## Feito\n\n- [x] Pronto\n'
+    '# Projeto\n\n## todo\n\n- [ ] Ideia | status: todo\n\n## doing\n\n- [ ] Em curso | status: doing\n\n## done\n\n- [x] Pronto | status: done\n'
   )
 })
 
@@ -107,7 +107,9 @@ test('saves a .md file with a sanitized name for a list without a name', async (
   await expect(page.getByText('Arquivo salvo')).toBeVisible()
 
   const fileName = `${title.replace(/[/:]/g, '-')}.md`
-  expect(readFileSync(join(folder, fileName), 'utf8')).toBe(`# ${title}\n\n- [ ] Primeira\n`)
+  expect(readFileSync(join(folder, fileName), 'utf8')).toBe(
+    `# ${title}\n\n- [ ] Primeira | status: todo\n`
+  )
 })
 
 test('exports the Hoje view with its groups', async () => {
@@ -123,6 +125,6 @@ test('exports the Hoje view with its groups', async () => {
     .click()
   await page.keyboard.press('Control+e')
   await expect(preview()).toHaveText(
-    `# Hoje\n\n## Atrasadas\n\n- [ ] Atrasada | due: 2020-01-01\n\n## Hoje\n\n- [ ] Hoje mesmo | due: ${today}\n`
+    `# Hoje\n\n## Atrasadas\n\n- [ ] Atrasada | status: todo | due: 2020-01-01\n\n## Hoje\n\n- [ ] Hoje mesmo | status: todo | due: ${today}\n`
   )
 })

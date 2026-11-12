@@ -35,7 +35,7 @@ const FIELD_SPLIT = /\s+\|\s+/
 export function taskToMarkdown(task: Task): string {
   const box = task.status === 'done' ? '[x]' : '[ ]'
   const fields: string[] = []
-  if (task.status === 'doing') fields.push('status: doing')
+  fields.push(`status: ${task.status}`)
   if (task.dueDate) fields.push(`due: ${[task.dueDate, task.dueTime].filter(Boolean).join(' ')}`)
   if (task.priority) fields.push(`priority: ${PRIORITY_NAMES[task.priority]}`)
   const title = task.title.replace(/\s*\n\s*/g, ' ')
