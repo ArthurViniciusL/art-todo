@@ -44,6 +44,7 @@ Construir um app desktop de todo list, local e offline, empacotado com Electron 
 10. Atalhos: `N` nova tarefa · `Enter` editar · `Espaço` Feito · `S` ciclar status · `↑↓`/`J K` navegar · `Del` excluir · `Ctrl+K` palette · `Ctrl+1..9` trocar de lista · `T` definir "hoje" · `Ctrl+Z` desfazer.
 11. Tema claro/escuro: segue o sistema, com override manual.
 12. **Export Markdown** da lista atual ou da visão atual. O destino é salvar `.md` com diálogo e/ou copiar para o clipboard.
+    - Acesso: item "Exportar tarefas…" no menu "⋯" de cada lista (abaixo de "Importar tarefas…", sem abrir a lista), `Ctrl+E` e paleta (view atual, incluindo Entrada e smart views). Sem botão no header.
     - Formato GFM: `# Nome`, `- [x]`/`- [ ]` + título + campos separados por ` | ` em inglês: `status: doing | due: 2026-10-25 09:30 | priority: high`. O export sempre escreve `status`; as concluídas ficam em `## done`. Sem emojis. O mesmo formato serve para o import (item 20). As notas vão indentadas abaixo da tarefa.
     - Uma opção inclui ou omite as concluídas. A partir do modo Colunas, há a opção de agrupar por `## todo / ## doing / ## done`.
     - O nome do arquivo é sanitizado (`/` e `:` viram `-`). O título `#` mantém o nome original.

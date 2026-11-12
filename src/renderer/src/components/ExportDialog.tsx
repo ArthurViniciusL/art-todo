@@ -1,20 +1,12 @@
 import { Button, Label, Modal, Switch, toast } from '@heroui/react'
 import { Copy, FileDown } from 'lucide-react'
 import { useState } from 'react'
-import { TASK_STATUSES, type Task, type ViewMode } from '../../../shared/domain'
+import { TASK_STATUSES, type List } from '../../../shared/domain'
 import { toMarkdown, type MarkdownSection } from '../../../shared/markdown'
-import { useCompactLayout } from '../hooks/useCompactLayout'
+import { useTasksByList } from '../hooks/queries'
 import { invoke } from '../lib/api'
+import { listExportSource, type ExportSource } from '../lib/export-source'
 import { useUiStore } from '../stores/ui'
-
-export interface ExportSource {
-  title: string
-  mode: ViewMode
-  /** Open tasks in the view's order, already grouped (one untitled group for lists). */
-  groups: MarkdownSection[]
-  /** Done tasks the view knows about, newest first. */
-  done: Task[]
-}
 
 function buildSections(
   { groups, done }: ExportSource,
@@ -133,36 +125,51 @@ function ExportForm({
   )
 }
 
-/** Markdown export of the current list or smart view (Ctrl+E, header button, palette). */
-export function ExportDialog({ source }: { source: ExportSource }): React.JSX.Element {
-  const isOpen = useUiStore((state) => state.isExportOpen)
-  const setOpen = useUiStore((state) => state.setExportOpen)
-
+function ExportModal({
+  isOpen,
+  onClose,
+  children
+}: {
+  isOpen: boolean
+  onClose: () => void
+  children: React.ReactNode
+}): React.JSX.Element {
   return (
-    <Modal.Backdrop isOpen={isOpen} onOpenChange={setOpen}>
+    <Modal.Backdrop isOpen={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Modal.Container size="lg">
-        <Modal.Dialog aria-label="Exportar Markdown">
-          {isOpen && <ExportForm source={source} onClose={() => setOpen(false)} />}
-        </Modal.Dialog>
+        <Modal.Dialog aria-label="Exportar Markdown">{isOpen && children}</Modal.Dialog>
       </Modal.Container>
     </Modal.Backdrop>
   )
 }
 
-export function ExportButton(): React.JSX.Element | null {
+/** Markdown export of the current list or smart view (Ctrl+E, palette). */
+export function ExportDialog({ source }: { source: ExportSource }): React.JSX.Element {
+  const isOpen = useUiStore((state) => state.isExportOpen)
   const setOpen = useUiStore((state) => state.setExportOpen)
-  // No room in a phone-sized header; Ctrl+E and the palette still open it.
-  if (useCompactLayout()) return null
+  const close = (): void => setOpen(false)
+
   return (
-    <Button
-      size="sm"
-      variant="ghost"
-      isIconOnly
-      aria-label="Exportar Markdown (Ctrl+E)"
-      className="app-no-drag"
-      onPress={() => setOpen(true)}
-    >
-      <FileDown className="size-4" aria-hidden />
-    </Button>
+    <ExportModal isOpen={isOpen} onClose={close}>
+      <ExportForm source={source} onClose={close} />
+    </ExportModal>
+  )
+}
+
+/** Markdown export of any list, opened from its sidebar "⋯" menu. */
+export function ListExportDialog({
+  list,
+  onClose
+}: {
+  /** List to export; null keeps the dialog closed. */
+  list: List | null
+  onClose: () => void
+}): React.JSX.Element {
+  const { data: tasks, isSuccess } = useTasksByList(list?.id)
+  return (
+    <ExportModal isOpen={!!list} onClose={onClose}>
+      {/* Wait for the tasks so the form's initial options see the real list. */}
+      {list && isSuccess && <ExportForm source={listExportSource(list, tasks)} onClose={onClose} />}
+    </ExportModal>
   )
 }
